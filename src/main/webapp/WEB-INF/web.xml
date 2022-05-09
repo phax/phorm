@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) Philip Helger
+
+    All rights reserved.
+
+-->
+<web-app version="3.0" 
+         xmlns="http://java.sun.com/xml/ns/javaee" 
+         metadata-complete="true">
+  <display-name>Standalone Validation Service</display-name>
+  
+  <session-config>
+    <session-timeout>60</session-timeout>
+  </session-config>
+  
+  <listener>
+    <listener-class>com.helger.valsvc.servlet.AppWebAppListener</listener-class>
+  </listener>
+
+  <servlet>
+    <servlet-name>RootServlet</servlet-name>
+    <servlet-class>com.helger.valsvc.servlet.RootServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RootServlet</servlet-name>
+    <url-pattern></url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>PhotonAPIServlet</servlet-name>
+    <servlet-class>com.helger.photon.api.servlet.PhotonAPIServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PhotonAPIServlet</servlet-name>
+    <url-pattern>/api/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>PingPongServlet</servlet-name>
+    <servlet-class>com.helger.valsvc.servlet.PingPongServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PingPongServlet</servlet-name>
+    <url-pattern>/ping/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>StatusServlet</servlet-name>
+    <servlet-class>com.helger.valsvc.servlet.StatusServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>StatusServlet</servlet-name>
+    <url-pattern>/status/*</url-pattern>
+  </servlet-mapping>
+</web-app>

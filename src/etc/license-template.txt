@@ -1,0 +1,3 @@
+Copyright (C) Philip Helger
+
+All rights reserved.

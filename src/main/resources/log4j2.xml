@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) Philip Helger
+
+    All rights reserved.
+
+-->
+<Configuration status="info" strict="true">
+  <Appenders>
+    <Console name="STDOUT" target="SYSTEM_OUT">
+      <!-- Location may be an issue when async logging is used! -->
+      <PatternLayout pattern="[%date{ISO8601}] [VAL-SVC] [%-5level] [%thread] %msg -- %location%n" />
+    </Console>
+  </Appenders>
+  <Loggers>
+    <Root level="info">
+      <AppenderRef ref="STDOUT" />
+    </Root>
+  </Loggers>
+</Configuration>
