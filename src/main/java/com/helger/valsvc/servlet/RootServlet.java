@@ -27,10 +27,12 @@ public class RootServlet extends AbstractXServlet
 {
   private static final class Hdl implements IXServletSimpleHandler, IHCTrait
   {
+    private static final String PARAM_INCLUDE_DEPRECATED = "include-deprecated";
+
     public void handleRequest (@Nonnull final IRequestWebScopeWithoutResponse aRequestScope,
                                @Nonnull final UnifiedResponse aUnifiedResponse) throws Exception
     {
-      final boolean bIncludeDeprecated = aRequestScope.params ().containsKey ("include-deprecated");
+      final boolean bIncludeDeprecated = aRequestScope.params ().containsKey (PARAM_INCLUDE_DEPRECATED);
 
       final HCHtml h = new HCHtml ().setLanguage ("en");
       h.head ().setPageTitle (CApp.APP_NAME);
@@ -40,7 +42,7 @@ public class RootServlet extends AbstractXServlet
         {
           final HCUL aUL = new HCUL ();
           aUL.addItem (div ("HTTP GET to").addChild (a (new SimpleURL ("ping")).addChild (code ("/ping")))
-                                          .addChild (" for keep-alive checks"));
+                                          .addChild (" for keep-alive or health checks"));
           aUL.addItem (div ("HTTP GET to").addChild (a (new SimpleURL ("status")).addChild (code ("/status")))
                                           .addChild (" for status information"));
           aUL.addItem (div ("HTTP POST to ").addChild (code ("/api/validate/{vesid}"))
@@ -56,8 +58,13 @@ public class RootServlet extends AbstractXServlet
             aUL.addAndReturnItem (code (x.getID ().getAsSingleID ()))
                .addChild (" - " + x.getDisplayName ())
                .addChild (x.isDeprecated () ? strong (" deprecated") : null);
+        if (!bIncludeDeprecated)
+          h.body ()
+           .addChild (div (a (new SimpleURL (aRequestScope.getURIDecoded ()).add (PARAM_INCLUDE_DEPRECATED)).addChild ("Show below list including duplicates")));
         h.body ()
-         .addChild (div ("Supported VESIDs are" + (bIncludeDeprecated ? " (including deprecated)" : "") + ":").addChild (aUL));
+         .addChild (div ("Supported VESIDs are" +
+                         (bIncludeDeprecated ? " (including deprecated)" : "") +
+                         ":").addChild (aUL));
       }
       PhotonHTMLHelper.createHTMLResponse (aRequestScope, aUnifiedResponse, x -> h);
     }
