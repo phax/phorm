@@ -59,12 +59,23 @@ public class ApiPostValidate extends AbstractAPIInvoker
       LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
     final String sToken = aRequestScope.getRequest ().getHeader ("X-Token");
     if (StringHelper.hasNoText (sToken))
-      throw new IllegalStateException (sLogPrefix + "The specific token header is missing");
+    {
+      if (LOGGER.isErrorEnabled ())
+        LOGGER.error (sLogPrefix + "The specific token header is missing");
+      aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
+      return;
+    }
     if (!REQUIRED_TOKEN.equals (sToken))
-      throw new IllegalStateException (sLogPrefix + "The specified token value is incorrect");
+    {
+      if (LOGGER.isErrorEnabled ())
+        LOGGER.error (sLogPrefix + "The specified token value is incorrect");
+      aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
+      return;
+    }
 
     // Read the payload as XML
-    LOGGER.info (sLogPrefix + "Trying to read payload as XML");
+    if (LOGGER.isInfoEnabled ())
+      LOGGER.info (sLogPrefix + "Trying to read payload as XML");
     final Document aDoc = DOMReader.readXMLDOM (aRequestScope.getRequest ().getInputStream ());
     if (aDoc == null || aDoc.getDocumentElement () == null)
       throw new IllegalArgumentException (sLogPrefix + "Failed to read the message body as XML");
@@ -85,7 +96,8 @@ public class ApiPostValidate extends AbstractAPIInvoker
         // validation
         final StopWatch aSW = StopWatch.createdStarted ();
 
-        LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
+        if (LOGGER.isInfoEnabled ())
+          LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
 
         // Perform validation
         final ValidationResultList aValidationResultList = AppValidator.validate (aVESID, aDoc, aDisplayLocale);
@@ -114,9 +126,10 @@ public class ApiPostValidate extends AbstractAPIInvoker
       }
     });
 
-    LOGGER.info (sLogPrefix +
-                 "Response JSON is:\n" +
-                 new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
+    if (LOGGER.isInfoEnabled ())
+      LOGGER.info (sLogPrefix +
+                   "Response JSON is:\n" +
+                   new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
 
     aUnifiedResponse.json (aJson);
   }

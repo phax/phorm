@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.helger.commons.annotation.Nonempty;
+import com.helger.commons.http.CHttp;
 import com.helger.commons.string.StringHelper;
 import com.helger.json.IJsonArray;
 import com.helger.json.IJsonObject;
@@ -54,9 +55,19 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
         LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
       final String sToken = aRequestScope.getRequest ().getHeader ("X-Token");
       if (StringHelper.hasNoText (sToken))
-        throw new IllegalStateException (sLogPrefix + "The specific token header is missing");
+      {
+        if (LOGGER.isErrorEnabled ())
+          LOGGER.error (sLogPrefix + "The specific token header is missing");
+        aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
+        return;
+      }
       if (!REQUIRED_TOKEN.equals (sToken))
-        throw new IllegalStateException (sLogPrefix + "The specified token value is incorrect");
+      {
+        if (LOGGER.isErrorEnabled ())
+          LOGGER.error (sLogPrefix + "The specified token value is incorrect");
+        aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
+        return;
+      }
     }
 
     final IJsonObject aJson = new JsonObject ();
@@ -74,9 +85,10 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
       aJson.addJson ("vesids", aJsonIDs);
     });
 
-    LOGGER.info (sLogPrefix +
-                 "Response JSON is:\n" +
-                 new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
+    if (LOGGER.isInfoEnabled ())
+      LOGGER.info (sLogPrefix +
+                   "Response JSON is:\n" +
+                   new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
 
     aUnifiedResponse.json (aJson);
   }
