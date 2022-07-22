@@ -15,7 +15,7 @@ import com.helger.xservlet.AbstractXServlet;
  */
 public class StatusServlet extends AbstractXServlet
 {
-  public static final String SERVLET_DEFAULT_NAME = "pp-status";
+  public static final String SERVLET_DEFAULT_NAME = "status";
   public static final String SERVLET_DEFAULT_PATH = '/' + SERVLET_DEFAULT_NAME;
 
   public StatusServlet ()
