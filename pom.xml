@@ -89,6 +89,7 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <!-- This is the library that usually needs updating -->
       <dependency>
         <groupId>com.helger.phive.rules</groupId>
         <artifactId>phive-rules-parent-pom</artifactId>

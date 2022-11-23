@@ -12,7 +12,7 @@ The services offers the following APIs.
   * The result is a JSON structure
 * GET **`/api/get/vesids`**
   * Get a list of all registered VESIDs
-  * The optional URL parameter `include-deprecated` can be used to also return registered, but deprecated VES IDs. No parameter value is needed.
+  * The optional URL parameter `include-deprecated` can be used to also return registered, but deprecated VES IDs. No parameter value is needed
   * The result is a JSON structure
 
 # Configuration
