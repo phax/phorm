@@ -5,9 +5,7 @@
  */
 package com.helger.valsvc.servlet;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -16,21 +14,13 @@ import javax.servlet.ServletContext;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.helger.commons.CGlobal;
-import com.helger.commons.collection.impl.CommonsArrayList;
 import com.helger.commons.datetime.PDTFactory;
 import com.helger.commons.vendor.VendorInfo;
-import com.helger.dao.DAOException;
 import com.helger.photon.api.APIDescriptor;
 import com.helger.photon.api.APIPath;
 import com.helger.photon.api.IAPIRegistry;
-import com.helger.photon.audit.DoNothingAuditor;
-import com.helger.photon.audit.IAuditItem;
-import com.helger.photon.audit.IAuditManager;
-import com.helger.photon.audit.IAuditor;
 import com.helger.photon.core.locale.ILocaleManager;
 import com.helger.photon.core.servlet.WebAppListener;
-import com.helger.photon.security.mgr.PhotonSecurityManager;
-import com.helger.photon.security.mgr.PhotonSecurityManager.FactoryXML;
 import com.helger.scope.singleton.SingletonHelper;
 import com.helger.valsvc.AppConfig;
 import com.helger.valsvc.AppErrorHandler;
@@ -119,56 +109,9 @@ public final class AppWebAppListener extends WebAppListener
     aLocaleMgr.setDefaultLocale (CApp.DEFAULT_LOCALE);
   }
 
-  // TODO replace with ph-oton version in >= 8.4.1
-  private static final class DoNothingAuditManager implements IAuditManager
-  {
-    private final IAuditor m_aAuditor = new DoNothingAuditor ( () -> null);
-
-    public boolean isInMemory ()
-    {
-      return true;
-    }
-
-    @Nullable
-    public String getBaseDir ()
-    {
-      return null;
-    }
-
-    @Nonnull
-    public IAuditor getAuditor ()
-    {
-      return m_aAuditor;
-    }
-
-    @Nonnull
-    public List <IAuditItem> getLastAuditItems (final int nMaxItems)
-    {
-      return new CommonsArrayList <> ();
-    }
-
-    public void stop ()
-    {}
-
-    @Nullable
-    public LocalDate getEarliestAuditDate ()
-    {
-      return null;
-    }
-  }
-
   @Override
   protected void initSecurity ()
   {
-    PhotonSecurityManager.setFactory (new FactoryXML ()
-    {
-      @Override
-      public IAuditManager createAuditManager () throws DAOException
-      {
-        // Avoid creating audits
-        return new DoNothingAuditManager ();
-      }
-    });
     // Set all security related stuff
     AppSecurity.init ();
   }

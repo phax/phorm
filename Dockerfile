@@ -14,7 +14,10 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY target/*.war valsvc.war
-RUN unzip valsvc.war -d /valsvc
+RUN unzip valsvc.war -d /valsvc \
+  && rm /valsvc/WEB-INF/classes/application.properties \
+  && mv /valsvc/WEB-INF/classes/application.docker.properties /valsvc/WEB-INF/classes/application.properties
+
 
 # Stage 2
 
