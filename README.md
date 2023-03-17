@@ -32,8 +32,8 @@ It supports the following settings:
 
 ## From Source 
 
-* Requires Java 1.8
-* Build with Apache Maven - via `mvn clean install`
+* Requires Java 11 or higher
+* Build with Apache Maven 3.x - via `mvn clean install`
 
 ## Docker image
 
