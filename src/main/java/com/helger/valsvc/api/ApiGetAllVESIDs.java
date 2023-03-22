@@ -23,6 +23,7 @@ import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
+import com.helger.phive.api.executorset.VESID;
 import com.helger.phive.engine.source.IValidationSourceXML;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
@@ -56,15 +57,13 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
       final String sToken = aRequestScope.getRequest ().getHeader ("X-Token");
       if (StringHelper.hasNoText (sToken))
       {
-        if (LOGGER.isErrorEnabled ())
-          LOGGER.error (sLogPrefix + "The specific token header is missing");
+        LOGGER.error (sLogPrefix + "The specific token header is missing");
         aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
         return;
       }
       if (!REQUIRED_TOKEN.equals (sToken))
       {
-        if (LOGGER.isErrorEnabled ())
-          LOGGER.error (sLogPrefix + "The specified token value is incorrect");
+        LOGGER.error (sLogPrefix + "The specified token value is incorrect");
         aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
         return;
       }
@@ -77,18 +76,22 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
       for (final IValidationExecutorSet <IValidationSourceXML> aEntry : AppValidator.getAllVESSorted ())
         if (bIncludeDeprecated || !aEntry.isDeprecated ())
         {
-          aJsonIDs.add (new JsonObject ().add ("vesid", aEntry.getID ().getAsSingleID ())
+          final VESID aVESID = aEntry.getID ();
+          final String sLatestVersion = AppValidator.getLatestVersion (aVESID);
+          final boolean bIsLatest = aVESID.getVersion ().equals (sLatestVersion);
+
+          aJsonIDs.add (new JsonObject ().add ("vesid", aVESID.getAsSingleID ())
                                          .add ("deprecated", aEntry.isDeprecated ())
-                                         .add ("name", aEntry.getDisplayName ()));
+                                         .add ("name", aEntry.getDisplayName ())
+                                         .addIf ("latest", "true", x -> bIsLatest));
         }
       aJson.add ("count", aJsonIDs.size ());
       aJson.addJson ("vesids", aJsonIDs);
     });
 
-    if (LOGGER.isInfoEnabled ())
-      LOGGER.info (sLogPrefix +
-                   "Response JSON is:\n" +
-                   new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
+    LOGGER.info (sLogPrefix +
+                 "Response JSON is:\n" +
+                 new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
 
     aUnifiedResponse.json (aJson);
   }

@@ -13,6 +13,7 @@ import com.helger.html.hc.html.grouping.HCUL;
 import com.helger.html.hc.html.root.HCHtml;
 import com.helger.html.hc.html.traits.IHCTrait;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
+import com.helger.phive.api.executorset.VESID;
 import com.helger.phive.engine.source.IValidationSourceXML;
 import com.helger.photon.app.html.PhotonHTMLHelper;
 import com.helger.servlet.response.UnifiedResponse;
@@ -55,9 +56,16 @@ public class RootServlet extends AbstractXServlet
         final HCUL aUL = new HCUL ();
         for (final IValidationExecutorSet <IValidationSourceXML> x : AppValidator.getAllVESSorted ())
           if (bIncludeDeprecated || !x.isDeprecated ())
-            aUL.addAndReturnItem (code (x.getID ().getAsSingleID ()))
+          {
+            final VESID aVESID = x.getID ();
+            final String sLatestVersion = AppValidator.getLatestVersion (aVESID);
+            final boolean bIsLatest = aVESID.getVersion ().equals (sLatestVersion);
+
+            aUL.addAndReturnItem (code (aVESID.getAsSingleID ()))
                .addChild (" - " + x.getDisplayName ())
+               .addChild (bIsLatest ? strong (" [latest]") : null)
                .addChild (x.isDeprecated () ? strong (" deprecated") : null);
+          }
         if (!bIncludeDeprecated)
           h.body ()
            .addChild (div (a (new SimpleURL (aRequestScope.getURIDecoded ()).add (PARAM_INCLUDE_DEPRECATED)).addChild ("Show below list including duplicates")));

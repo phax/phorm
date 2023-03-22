@@ -61,28 +61,25 @@ public class ApiPostValidate extends AbstractAPIInvoker
     final String sToken = aRequestScope.getRequest ().getHeader ("X-Token");
     if (StringHelper.hasNoText (sToken))
     {
-      if (LOGGER.isErrorEnabled ())
-        LOGGER.error (sLogPrefix + "The specific token header is missing");
+      LOGGER.error (sLogPrefix + "The specific token header is missing");
       aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
       return;
     }
     if (!REQUIRED_TOKEN.equals (sToken))
     {
-      if (LOGGER.isErrorEnabled ())
-        LOGGER.error (sLogPrefix + "The specified token value is incorrect");
+      LOGGER.error (sLogPrefix + "The specified token value is incorrect");
       aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
       return;
     }
 
     // Read the payload as XML
-    if (LOGGER.isInfoEnabled ())
-      LOGGER.info (sLogPrefix + "Trying to read payload as XML");
+    LOGGER.info (sLogPrefix + "Trying to read payload as XML");
     final Document aDoc = DOMReader.readXMLDOM (aRequestScope.getRequest ().getInputStream ());
     if (aDoc == null || aDoc.getDocumentElement () == null)
     {
-      if (LOGGER.isErrorEnabled ())
-        LOGGER.error (sLogPrefix + "Failed to read the message body as XML");
-      aUnifiedResponse.setStatus (CHttp.HTTP_BAD_REQUEST);
+      final String sErrorMsg = "Failed to read the message body as XML";
+      LOGGER.error (sLogPrefix + sErrorMsg);
+      aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
       return;
     }
 
@@ -90,16 +87,16 @@ public class ApiPostValidate extends AbstractAPIInvoker
     final VESID aVESID = VESID.parseIDOrNull (sVESID);
     if (aVESID == null)
     {
-      if (LOGGER.isErrorEnabled ())
-        LOGGER.error (sLogPrefix + "The VESID '" + sVESID + "' could not be parsed.");
-      aUnifiedResponse.setStatus (CHttp.HTTP_BAD_REQUEST);
+      final String sErrorMsg = "The VESID '" + sVESID + "' could not be parsed.";
+      LOGGER.error (sLogPrefix + sErrorMsg);
+      aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
       return;
     }
-    if (AppValidator.getVES (aVESID) == null)
+    if (AppValidator.getVESOrNull (aVESID) == null)
     {
-      if (LOGGER.isErrorEnabled ())
-        LOGGER.error (sLogPrefix + "The VESID '" + sVESID + "' could not be resolved.");
-      aUnifiedResponse.setStatus (CHttp.HTTP_BAD_REQUEST);
+      final String sErrorMsg = "The VESID '" + sVESID + "' could not be resolved.";
+      LOGGER.error (sLogPrefix + sErrorMsg);
+      aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
       return;
     }
 
@@ -112,8 +109,7 @@ public class ApiPostValidate extends AbstractAPIInvoker
         // validation
         final StopWatch aSW = StopWatch.createdStarted ();
 
-        if (LOGGER.isInfoEnabled ())
-          LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
+        LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
 
         // Perform validation
         final ValidationResultList aValidationResultList = AppValidator.validate (aVESID, aDoc, aDisplayLocale);
@@ -138,14 +134,13 @@ public class ApiPostValidate extends AbstractAPIInvoker
       if (!bOverallSuccess)
       {
         // Return error status
-        aUnifiedResponse.setAllowContentOnStatusCode (true).setStatus (CHttp.HTTP_BAD_REQUEST);
+        aUnifiedResponse.setStatus (CHttp.HTTP_BAD_REQUEST);
       }
     });
 
-    if (LOGGER.isInfoEnabled ())
-      LOGGER.info (sLogPrefix +
-                   "Response JSON is:\n" +
-                   new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
+    LOGGER.info (sLogPrefix +
+                 "Response JSON is:\n" +
+                 new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
 
     aUnifiedResponse.json (aJson);
   }

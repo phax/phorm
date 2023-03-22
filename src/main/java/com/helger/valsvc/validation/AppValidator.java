@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.Locale;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.w3c.dom.Document;
 
@@ -47,6 +48,21 @@ public class AppValidator
   public static ICommonsList <IValidationExecutorSet <IValidationSourceXML>> getAllVESSorted ()
   {
     return VER.getAll ().getSortedInline (Comparator.comparing (x -> x.getID ().getAsSingleID ()));
+  }
+
+  @Nullable
+  public static IValidationExecutorSet <IValidationSourceXML> getVESOrNull (@Nonnull final VESID aVESID)
+  {
+    return VER.getOfID (aVESID);
+  }
+
+  @Nullable
+  public static String getLatestVersion (@Nonnull final VESID aVESID)
+  {
+    final IValidationExecutorSet <IValidationSourceXML> aLatest = VER.getLatestVersion (aVESID.getGroupID (),
+                                                                                        aVESID.getArtifactID (),
+                                                                                        null);
+    return aLatest == null ? null : aLatest.getID ().getVersion ();
   }
 
   @Nonnull
