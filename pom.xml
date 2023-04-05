@@ -220,12 +220,6 @@
     </resources>
     
     <plugins>
-      <plugin>
-        <groupId>com.mycila</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <configuration>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 </project>
