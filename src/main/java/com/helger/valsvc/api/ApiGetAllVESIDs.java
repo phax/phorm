@@ -27,6 +27,7 @@ import com.helger.phive.api.executorset.VESID;
 import com.helger.phive.engine.source.IValidationSourceXML;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
+import com.helger.valsvc.AppConfig;
 import com.helger.valsvc.validation.AppValidator;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 
@@ -54,16 +55,17 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
       // Security check
       if (LOGGER.isDebugEnabled ())
         LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
-      final String sToken = aRequestScope.getRequest ().getHeader ("X-Token");
+
+      final String sToken = aRequestScope.getRequest ().getHeader (HEADER_X_TOKEN);
       if (StringHelper.hasNoText (sToken))
       {
         LOGGER.error (sLogPrefix + "The specific token header is missing");
         aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
         return;
       }
-      if (!REQUIRED_TOKEN.equals (sToken))
+      if (!sToken.equals (AppConfig.getAPIRequiredToken ()))
       {
-        LOGGER.error (sLogPrefix + "The specified token value is incorrect");
+        LOGGER.error (sLogPrefix + "The specified token value does not match the configured required token");
         aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
         return;
       }

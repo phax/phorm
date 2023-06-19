@@ -29,9 +29,8 @@ import com.helger.web.scope.IRequestWebScopeWithoutResponse;
  */
 public abstract class AbstractAPIInvoker implements IAPIExecutor
 {
+  public static final String HEADER_X_TOKEN = "X-Token";
   private static final Logger LOGGER = LoggerFactory.getLogger (AbstractAPIInvoker.class);
-
-  public static final String REQUIRED_TOKEN = "4cKyX6OKBs80nWPyOamn";
 
   public abstract void invokeAPI (@Nonnull final IAPIDescriptor aAPIDescriptor,
                                   @Nonnull @Nonempty final String sPath,

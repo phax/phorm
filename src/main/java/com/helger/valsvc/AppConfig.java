@@ -58,6 +58,12 @@ public final class AppConfig
     return getConfig ().getAsBoolean ("webapp.testversion", GlobalDebug.isDebugMode ());
   }
 
+  @Nullable
+  public static String getAPIRequiredToken ()
+  {
+    return getConfig ().getAsString ("valsvc.api.requiredtoken");
+  }
+
   public static boolean isStatusAPIEnabled ()
   {
     return getConfig ().getAsBoolean ("valsvc.statusapi.enabled", true);

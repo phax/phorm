@@ -14,6 +14,8 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.helger.commons.CGlobal;
 import com.helger.commons.datetime.PDTFactory;
+import com.helger.commons.exception.InitializationException;
+import com.helger.commons.string.StringHelper;
 import com.helger.commons.vendor.VendorInfo;
 import com.helger.photon.api.APIDescriptor;
 import com.helger.photon.api.APIPath;
@@ -101,6 +103,11 @@ public final class AppWebAppListener extends WebAppListener
     RequestTrackerSettings.setLongRunningRequestsCheckEnabled (true);
     RequestTrackerSettings.setLongRunningRequestCheckIntervalMilliseconds (10 * CGlobal.MILLISECONDS_PER_SECOND);
     RequestTrackerSettings.setParallelRunningRequestsCheckEnabled (true);
+
+    // Check configuration
+    // This property is by default in the "private-application.properties" file
+    if (StringHelper.hasNoText (AppConfig.getAPIRequiredToken ()))
+      throw new InitializationException ("The configuration property 'valsvc.api.requiredtoken' is not set or empty. This is a required configuration.");
   }
 
   @Override
