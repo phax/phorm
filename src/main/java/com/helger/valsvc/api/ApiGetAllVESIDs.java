@@ -56,7 +56,7 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
       if (LOGGER.isDebugEnabled ())
         LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
 
-      final String sToken = aRequestScope.getRequest ().getHeader (HEADER_X_TOKEN);
+      final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
       if (StringHelper.hasNoText (sToken))
       {
         LOGGER.error (sLogPrefix + "The specific token header is missing");
