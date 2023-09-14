@@ -14,9 +14,9 @@ import javax.annotation.Nullable;
 import org.w3c.dom.Document;
 
 import com.helger.commons.collection.impl.ICommonsList;
+import com.helger.diver.api.version.VESID;
 import com.helger.phive.api.execute.ValidationExecutionManager;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
-import com.helger.phive.api.executorset.VESID;
 import com.helger.phive.api.executorset.ValidationExecutorSetRegistry;
 import com.helger.phive.api.result.ValidationResultList;
 import com.helger.phive.en16931.EN16931Validation;

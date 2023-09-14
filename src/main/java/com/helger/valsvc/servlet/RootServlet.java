@@ -9,11 +9,11 @@ import javax.annotation.Nonnull;
 
 import com.helger.commons.http.EHttpMethod;
 import com.helger.commons.url.SimpleURL;
+import com.helger.diver.api.version.VESID;
 import com.helger.html.hc.html.grouping.HCUL;
 import com.helger.html.hc.html.root.HCHtml;
 import com.helger.html.hc.html.traits.IHCTrait;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
-import com.helger.phive.api.executorset.VESID;
 import com.helger.phive.xml.source.IValidationSourceXML;
 import com.helger.photon.app.html.PhotonHTMLHelper;
 import com.helger.servlet.response.UnifiedResponse;
