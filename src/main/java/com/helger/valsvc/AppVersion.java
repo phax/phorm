@@ -16,14 +16,14 @@ import com.helger.commons.io.resource.ClassPathResource;
 import com.helger.commons.lang.NonBlockingProperties;
 
 /**
- * Peppol Playground constants
+ * Validation Service version number
  *
  * @author Philip Helger
  */
 @Immutable
 public final class AppVersion
 {
-  public static final String PP_VERSION_FILENAME = "valsvc-version.properties";
+  public static final String VALSVC_VERSION_FILENAME = "valsvc-version.properties";
 
   private static final String VERSION_NUMBER;
   private static final String TIMESTAMP;
@@ -34,7 +34,7 @@ public final class AppVersion
     final NonBlockingProperties aVersionProps = new NonBlockingProperties ();
     try
     {
-      aVersionProps.load (ClassPathResource.getInputStream (PP_VERSION_FILENAME));
+      aVersionProps.load (ClassPathResource.getInputStream (VALSVC_VERSION_FILENAME));
     }
     catch (final IOException ex)
     {
@@ -52,8 +52,8 @@ public final class AppVersion
   {}
 
   /**
-   * @return The version number of the PP server read from the internal
-   *         properties file. Never <code>null</code>.
+   * @return The version number of the ValSvc read from the internal properties
+   *         file. Never <code>null</code>.
    */
   @Nonnull
   public static String getVersionNumber ()
@@ -62,8 +62,8 @@ public final class AppVersion
   }
 
   /**
-   * @return The build timestamp of the SMP server read from the internal
-   *         properties file. Never <code>null</code>.
+   * @return The build timestamp of the ValSvc read from the internal properties
+   *         file. Never <code>null</code>.
    */
   @Nonnull
   public static String getBuildTimestamp ()
