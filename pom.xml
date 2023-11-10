@@ -35,7 +35,7 @@
   </developers>
   
   <properties>
-    <log4j.version>2.20.0</log4j.version>
+    <log4j.version>2.21.1</log4j.version>
   </properties>
   
   <dependencyManagement>
@@ -57,7 +57,7 @@
       <dependency>
         <groupId>com.helger.photon</groupId>
         <artifactId>ph-oton-parent-pom</artifactId>
-        <version>9.2.0</version>
+        <version>9.2.1</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -93,7 +93,7 @@
       <dependency>
         <groupId>com.helger.phive.rules</groupId>
         <artifactId>phive-rules-parent-pom</artifactId>
-        <version>3.1.2</version>
+        <version>3.1.4</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
