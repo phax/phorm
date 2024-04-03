@@ -76,14 +76,14 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
     CommonAPIInvoker.invoke (aJson, () -> {
       final IJsonArray aJsonIDs = new JsonArray ();
       for (final IValidationExecutorSet <IValidationSourceXML> aEntry : AppValidator.getAllVESSorted ())
-        if (bIncludeDeprecated || !aEntry.isDeprecated ())
+        if (bIncludeDeprecated || !aEntry.getStatus ().isDeprecated ())
         {
           final VESID aVESID = aEntry.getID ();
           final String sLatestVersion = AppValidator.getLatestVersion (aVESID);
           final boolean bIsLatest = aVESID.getVersionString ().equals (sLatestVersion);
 
           aJsonIDs.add (new JsonObject ().add ("vesid", aVESID.getAsSingleID ())
-                                         .add ("deprecated", aEntry.isDeprecated ())
+                                         .add ("deprecated", aEntry.getStatus ().isDeprecated ())
                                          .add ("name", aEntry.getDisplayName ())
                                          .addIf ("latest", "true", x -> bIsLatest));
         }

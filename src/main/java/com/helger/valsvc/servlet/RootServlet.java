@@ -55,7 +55,7 @@ public class RootServlet extends AbstractXServlet
 
         final HCUL aUL = new HCUL ();
         for (final IValidationExecutorSet <IValidationSourceXML> x : AppValidator.getAllVESSorted ())
-          if (bIncludeDeprecated || !x.isDeprecated ())
+          if (bIncludeDeprecated || !x.getStatus ().isDeprecated ())
           {
             final VESID aVESID = x.getID ();
             final String sLatestVersion = AppValidator.getLatestVersion (aVESID);
@@ -64,7 +64,7 @@ public class RootServlet extends AbstractXServlet
             aUL.addAndReturnItem (code (aVESID.getAsSingleID ()))
                .addChild (" - " + x.getDisplayName ())
                .addChild (bIsLatest ? strong (" [latest]") : null)
-               .addChild (x.isDeprecated () ? strong (" deprecated") : null);
+               .addChild (x.getStatus ().isDeprecated () ? strong (" deprecated") : null);
           }
         if (!bIncludeDeprecated)
           h.body ()
