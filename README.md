@@ -62,4 +62,5 @@ docker run -d --name valsvc -p 8080:8080 phelger/valsvc
 
 # News and noteworthy
 
-2024-01-10 - add XRechnung rules as well
+2024-05-23 - added UBL.BE rules as well 
+2024-01-10 - added XRechnung rules as well

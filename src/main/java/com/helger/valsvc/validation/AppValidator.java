@@ -22,6 +22,7 @@ import com.helger.phive.api.result.ValidationResultList;
 import com.helger.phive.en16931.EN16931Validation;
 import com.helger.phive.peppol.PeppolValidation;
 import com.helger.phive.simplerinvoicing.SimplerInvoicingValidation;
+import com.helger.phive.ublbe.UBLBEValidation;
 import com.helger.phive.xml.source.IValidationSourceXML;
 import com.helger.phive.xml.source.ValidationSourceXML;
 import com.helger.phive.xrechnung.XRechnungValidation;
@@ -39,6 +40,7 @@ public class AppValidator
     EN16931Validation.initEN16931 (VER);
     PeppolValidation.initStandard (VER);
     SimplerInvoicingValidation.initSimplerInvoicing (VER);
+    UBLBEValidation.initUBLBE (VER);
     XRechnungValidation.initXRechnung (VER);
   }
 
