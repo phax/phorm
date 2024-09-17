@@ -67,5 +67,6 @@ curl -d "@base-example.xml" -H "Content-Type: application/xml" -H "X-Token: XXX"
 
 # News and noteworthy
 
+2024-09-17 - updated to phive v10 and ph-diver v3
 2024-05-23 - added UBL.BE rules as well 
 2024-01-10 - added XRechnung rules as well

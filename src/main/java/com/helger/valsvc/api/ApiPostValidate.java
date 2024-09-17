@@ -20,7 +20,7 @@ import com.helger.commons.annotation.Nonempty;
 import com.helger.commons.http.CHttp;
 import com.helger.commons.string.StringHelper;
 import com.helger.commons.timing.StopWatch;
-import com.helger.diver.api.version.VESID;
+import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.json.IJsonObject;
 import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
@@ -86,7 +86,7 @@ public class ApiPostValidate extends AbstractAPIInvoker
     }
 
     final String sVESID = aPathVariables.get ("vesid");
-    final VESID aVESID = VESID.parseIDOrNull (sVESID);
+    final DVRCoordinate aVESID = DVRCoordinate.parseOrNull (sVESID);
     if (aVESID == null)
     {
       final String sErrorMsg = "The VESID '" + sVESID + "' could not be parsed.";

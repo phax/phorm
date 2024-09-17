@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.helger.commons.annotation.Nonempty;
 import com.helger.commons.http.CHttp;
 import com.helger.commons.string.StringHelper;
-import com.helger.diver.api.version.VESID;
+import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.json.IJsonArray;
 import com.helger.json.IJsonObject;
 import com.helger.json.JsonArray;
@@ -78,7 +78,7 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
       for (final IValidationExecutorSet <IValidationSourceXML> aEntry : AppValidator.getAllVESSorted ())
         if (bIncludeDeprecated || !aEntry.getStatus ().isDeprecated ())
         {
-          final VESID aVESID = aEntry.getID ();
+          final DVRCoordinate aVESID = aEntry.getID ();
           final String sLatestVersion = AppValidator.getLatestVersion (aVESID);
           final boolean bIsLatest = aVESID.getVersionString ().equals (sLatestVersion);
 

@@ -14,11 +14,12 @@ import javax.annotation.Nullable;
 import org.w3c.dom.Document;
 
 import com.helger.commons.collection.impl.ICommonsList;
-import com.helger.diver.api.version.VESID;
+import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.phive.api.execute.ValidationExecutionManager;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
 import com.helger.phive.api.executorset.ValidationExecutorSetRegistry;
 import com.helger.phive.api.result.ValidationResultList;
+import com.helger.phive.api.validity.IValidityDeterminator;
 import com.helger.phive.en16931.EN16931Validation;
 import com.helger.phive.peppol.PeppolValidation;
 import com.helger.phive.peppol.italy.PeppolItalyValidation;
@@ -61,13 +62,13 @@ public class AppValidator
   }
 
   @Nullable
-  public static IValidationExecutorSet <IValidationSourceXML> getVESOrNull (@Nonnull final VESID aVESID)
+  public static IValidationExecutorSet <IValidationSourceXML> getVESOrNull (@Nonnull final DVRCoordinate aVESID)
   {
     return VER.getOfID (aVESID);
   }
 
   @Nullable
-  public static String getLatestVersion (@Nonnull final VESID aVESID)
+  public static String getLatestVersion (@Nonnull final DVRCoordinate aVESID)
   {
     final IValidationExecutorSet <IValidationSourceXML> aLatest = VER.getLatestVersion (aVESID.getGroupID (),
                                                                                         aVESID.getArtifactID (),
@@ -76,7 +77,7 @@ public class AppValidator
   }
 
   @Nonnull
-  public static IValidationExecutorSet <IValidationSourceXML> getVES (@Nonnull final VESID aVESID)
+  public static IValidationExecutorSet <IValidationSourceXML> getVES (@Nonnull final DVRCoordinate aVESID)
   {
     final IValidationExecutorSet <IValidationSourceXML> aVES = VER.getOfID (aVESID);
     if (aVES == null)
@@ -88,12 +89,13 @@ public class AppValidator
   {}
 
   @Nonnull
-  public static ValidationResultList validate (@Nonnull final VESID aVESID,
+  public static ValidationResultList validate (@Nonnull final DVRCoordinate aVESID,
                                                @Nonnull final Document aDoc,
                                                @Nonnull final Locale aDisplayLocale)
   {
     // Start validation
-    return ValidationExecutionManager.executeValidation (getVES (aVESID),
+    return ValidationExecutionManager.executeValidation (IValidityDeterminator.createDefault (),
+                                                         getVES (aVESID),
                                                          ValidationSourceXML.create ("uploaded content", aDoc),
                                                          aDisplayLocale);
   }

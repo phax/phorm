@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 
 import com.helger.commons.http.EHttpMethod;
 import com.helger.commons.url.SimpleURL;
-import com.helger.diver.api.version.VESID;
+import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.html.hc.html.grouping.HCUL;
 import com.helger.html.hc.html.root.HCHtml;
 import com.helger.html.hc.html.traits.IHCTrait;
@@ -57,7 +57,7 @@ public class RootServlet extends AbstractXServlet
         for (final IValidationExecutorSet <IValidationSourceXML> x : AppValidator.getAllVESSorted ())
           if (bIncludeDeprecated || !x.getStatus ().isDeprecated ())
           {
-            final VESID aVESID = x.getID ();
+            final DVRCoordinate aVESID = x.getID ();
             final String sLatestVersion = AppValidator.getLatestVersion (aVESID);
             final boolean bIsLatest = aVESID.getVersionString ().equals (sLatestVersion);
 
