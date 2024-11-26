@@ -19,7 +19,7 @@ The services offers the following APIs.
   * Requires the HTTP header `X-Token` to have the configured value (see below for `valsvc.api.requiredtoken`)
   * The result is a JSON structure
   * Test invocation:
-    * `curl -X POST -H "Content-Type: application/xml" -H "X-Token: XXX" -d @src/test/resources/testfiles/peppol-bis3/base-example.xml http://localhost:8080/api/validate/eu.peppol.bis:invoice:latest`
+    * `curl -X POST -H "Content-Type: application/xml" -H "X-Token: XXX" -d @src/test/resources/testfiles/peppol-bis3/base-example.xml http://localhost:8080/api/validate/eu.peppol.bis3:invoice:latest`
 * GET **`/api/get/vesids`**
   * Get a list of all registered VESIDs
   * The optional URL parameter `include-deprecated` can be used to also return registered, but deprecated VES IDs. No parameter value is needed
