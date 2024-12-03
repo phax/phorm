@@ -72,7 +72,7 @@ Running:
 docker run -d --name valsvc -p 8080:8080 phelger/valsvc
 ```
 
-Example curl command (use the right token and the right address):
+Example curl command (use the correct "X-Token" and the right address):
 ```
 curl -d "@base-example.xml" -H "Content-Type: application/xml" -H "X-Token: XXX" -X POST http://localhost:8080/api/validate/eu.peppol.bis3:invoice:latest
 ```
