@@ -6,7 +6,7 @@
 
 # Stage 1
 
-FROM ubuntu:latest as build
+FROM ubuntu:latest AS build
 
 # Install wget and unzip
 RUN apt-get update \
@@ -23,7 +23,7 @@ RUN unzip valsvc.war -d /valsvc \
 
 FROM tomcat:10.1-jdk21
 
-ENV CATALINS_OPTS="$CATALINA_OPTS -Djava.security.egd=file:/dev/urandom"
+ENV CATALINS_OPTS="-Djava.security.egd=file:/dev/urandom"
 
 WORKDIR $CATALINA_HOME/webapps
 
