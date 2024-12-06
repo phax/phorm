@@ -50,6 +50,8 @@ public class RootServlet extends AbstractXServlet
                                             .addChild (" for validating messages"));
           aUL.addItem (div ("HTTP GET to").addChild (a (new SimpleURL ("api/get/vesids")).addChild (code ("/api/get/vesids")))
                                           .addChild (" to get all registered VESIDs"));
+          aUL.addItem (div ("HTTP POST to ").addChild (code ("/api/determinedoctype"))
+                                            .addChild (" for detecting the payload type"));
           h.body ().addChild (div ("Supported APIs are:").addChild (aUL));
         }
 
