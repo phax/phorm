@@ -107,7 +107,7 @@
       <dependency>
         <groupId>com.helger</groupId>
         <artifactId>ddd</artifactId>
-        <version>0.4.5</version>
+        <version>0.5.0</version>
       </dependency>
 
       <dependency>
