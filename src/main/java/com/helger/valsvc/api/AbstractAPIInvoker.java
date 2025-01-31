@@ -51,7 +51,7 @@ public abstract class AbstractAPIInvoker implements IAPIExecutor
     invokeAPI (aAPIDescriptor, sPath, aPathVariables, aRequestScope, aPUR);
 
     aSW.stop ();
-    LOGGER.info ("[API] Succesfully finished '" +
+    LOGGER.info ("[API] Successfully finished '" +
                  aAPIDescriptor.getPathDescriptor ().getAsURLString () +
                  "' after " +
                  aSW.getMillis () +
