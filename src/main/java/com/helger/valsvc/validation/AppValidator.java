@@ -21,6 +21,7 @@ import com.helger.phive.api.executorset.ValidationExecutorSetRegistry;
 import com.helger.phive.api.result.ValidationResultList;
 import com.helger.phive.api.validity.IValidityDeterminator;
 import com.helger.phive.en16931.EN16931Validation;
+import com.helger.phive.oioubl.OIOUBLValidation;
 import com.helger.phive.peppol.PeppolValidation;
 import com.helger.phive.peppol.italy.PeppolItalyValidation;
 import com.helger.phive.peppol.legacy.PeppolLegacyValidationBisEurope;
@@ -42,6 +43,7 @@ public class AppValidator
   static
   {
     EN16931Validation.initEN16931 (VER);
+    OIOUBLValidation.initOIOUBL (VER);
     PeppolValidation.initStandard (VER);
     PeppolLegacyValidationBisEurope.init (VER);
     PeppolItalyValidation.init (VER);

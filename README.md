@@ -127,6 +127,8 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+* 2025-03-04
+    * Added Danish OIOUBL rules to the ruleset
 * 2025-01-09
     * The API `/api/validate/{vesid}` can return JSON or XML (depending on the `Accept` header)
 * 2024-12-06

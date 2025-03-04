@@ -160,6 +160,10 @@
     </dependency>
     <dependency>
       <groupId>com.helger.phive.rules</groupId>
+      <artifactId>phive-rules-oioubl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.helger.phive.rules</groupId>
       <artifactId>phive-rules-peppol</artifactId>
     </dependency>
     <dependency>
