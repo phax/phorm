@@ -100,14 +100,14 @@
       <dependency>
         <groupId>com.helger.phive.rules</groupId>
         <artifactId>phive-rules-parent-pom</artifactId>
-        <version>3.2.9</version>
+        <version>3.2.10</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger</groupId>
         <artifactId>ddd</artifactId>
-        <version>0.5.1</version>
+        <version>0.5.2</version>
       </dependency>
 
       <dependency>
