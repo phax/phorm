@@ -53,57 +53,57 @@ import com.helger.phive.zugferd.ZugferdValidation;
  */
 public class AppValidator
 {
-  private static final ValidationExecutorSetRegistry <IValidationSourceXML> VER = new ValidationExecutorSetRegistry <> ();
+  private static final ValidationExecutorSetRegistry <IValidationSourceXML> VESREG = new ValidationExecutorSetRegistry <> ();
   static
   {
-    EN16931Validation.initEN16931 (VER);
-    CIIValidation.initCII (VER);
-    CIUS_PTValidation.initCIUS_PT (VER);
-    CIUS_ROValidation.initCIUS_RO (VER);
-    EbInterfaceValidation.initEbInterface (VER);
-    EHFValidation.initEHF (VER);
-    FacturaeValidation.initFacturae (VER);
-    FatturaPAValidation.initFatturaPA (VER);
-    FinvoiceValidation.initFinvoice (VER);
-    OIOUBLValidation.initOIOUBL (VER);
-    PeppolValidation.initStandard (VER);
-    PeppolLegacyValidationBisEurope.init (VER);
-    PeppolItalyValidation.init (VER);
-    SETUValidation.initSETU (VER);
-    SimplerInvoicingValidation.initSimplerInvoicing (VER);
+    EN16931Validation.initEN16931 (VESREG);
+    CIIValidation.initCII (VESREG);
+    CIUS_PTValidation.initCIUS_PT (VESREG);
+    CIUS_ROValidation.initCIUS_RO (VESREG);
+    EbInterfaceValidation.initEbInterface (VESREG);
+    EHFValidation.initEHF (VESREG);
+    FacturaeValidation.initFacturae (VESREG);
+    FatturaPAValidation.initFatturaPA (VESREG);
+    FinvoiceValidation.initFinvoice (VESREG);
+    OIOUBLValidation.initOIOUBL (VESREG);
+    PeppolValidation.initStandard (VESREG);
+    PeppolLegacyValidationBisEurope.init (VESREG);
+    PeppolItalyValidation.init (VESREG);
+    SETUValidation.initSETU (VESREG);
+    SimplerInvoicingValidation.initSimplerInvoicing (VESREG);
     // After SimplerInvoicing:
-    EnergieEFactuurValidation.initEnergieEFactuur (VER);
-    SvefakturaValidation.initSvefaktura (VER);
-    TEAPPSValidation.initTEAPPS (VER);
-    UBLValidation.initUBLAllVersions (VER);
-    UBLBEValidation.initUBLBE (VER);
-    XRechnungValidation.initXRechnung (VER);
-    ZATCAValidation.initZATCA (VER);
-    ZugferdValidation.initZugferd (VER);
+    EnergieEFactuurValidation.initEnergieEFactuur (VESREG);
+    SvefakturaValidation.initSvefaktura (VESREG);
+    TEAPPSValidation.initTEAPPS (VESREG);
+    UBLValidation.initUBLAllVersions (VESREG);
+    UBLBEValidation.initUBLBE (VESREG);
+    XRechnungValidation.initXRechnung (VESREG);
+    ZATCAValidation.initZATCA (VESREG);
+    ZugferdValidation.initZugferd (VESREG);
   }
 
   @Nonnull
   public static ICommonsList <IValidationExecutorSet <IValidationSourceXML>> getAllVES ()
   {
-    return VER.getAll ();
+    return VESREG.getAll ();
   }
 
   @Nonnull
   public static ICommonsList <IValidationExecutorSet <IValidationSourceXML>> getAllVESSorted ()
   {
-    return VER.getAll ().getSortedInline (Comparator.comparing (x -> x.getID ().getAsSingleID ()));
+    return VESREG.getAll ().getSortedInline (Comparator.comparing (x -> x.getID ().getAsSingleID ()));
   }
 
   @Nullable
   public static IValidationExecutorSet <IValidationSourceXML> getVESOrNull (@Nonnull final DVRCoordinate aVESID)
   {
-    return VER.getOfID (aVESID);
+    return VESREG.getOfID (aVESID);
   }
 
   @Nullable
   public static String getLatestVersion (@Nonnull final DVRCoordinate aVESID)
   {
-    final IValidationExecutorSet <IValidationSourceXML> aLatest = VER.getLatestVersion (aVESID.getGroupID (),
+    final IValidationExecutorSet <IValidationSourceXML> aLatest = VESREG.getLatestVersion (aVESID.getGroupID (),
                                                                                         aVESID.getArtifactID (),
                                                                                         null);
     return aLatest == null ? null : aLatest.getID ().getVersionString ();
@@ -112,7 +112,7 @@ public class AppValidator
   @Nonnull
   public static IValidationExecutorSet <IValidationSourceXML> getVES (@Nonnull final DVRCoordinate aVESID)
   {
-    final IValidationExecutorSet <IValidationSourceXML> aVES = VER.getOfID (aVESID);
+    final IValidationExecutorSet <IValidationSourceXML> aVES = VESREG.getOfID (aVESID);
     if (aVES == null)
       throw new IllegalStateException ("Unexpected VESID " + aVESID.getAsSingleID ());
     return aVES;
