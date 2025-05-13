@@ -104,8 +104,8 @@ public class AppValidator
   public static String getLatestVersion (@Nonnull final DVRCoordinate aVESID)
   {
     final IValidationExecutorSet <IValidationSourceXML> aLatest = VESREG.getLatestVersion (aVESID.getGroupID (),
-                                                                                        aVESID.getArtifactID (),
-                                                                                        null);
+                                                                                           aVESID.getArtifactID (),
+                                                                                           null);
     return aLatest == null ? null : aLatest.getID ().getVersionString ();
   }
 
