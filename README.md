@@ -133,6 +133,9 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+* 2025-09-02
+    * The API `/api/determinedoctype` can now also return XML payload
+    * Fixed an error with the document type ID scheme for PINT document types in determination
 * 2025-08-29
     * The minimum requirement is now Java 17
 * 2025-03-23
