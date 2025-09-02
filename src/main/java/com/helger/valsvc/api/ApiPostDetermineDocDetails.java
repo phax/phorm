@@ -17,16 +17,24 @@ import com.helger.annotation.Nonempty;
 import com.helger.base.string.StringHelper;
 import com.helger.ddd.DocumentDetails;
 import com.helger.http.CHttp;
+import com.helger.http.header.specific.AcceptMimeTypeList;
 import com.helger.json.IJsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
+import com.helger.mime.CMimeType;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
+import com.helger.servlet.request.RequestHelper;
 import com.helger.valsvc.AppConfig;
 import com.helger.valsvc.AppVersion;
 import com.helger.valsvc.ddd.ValSvcDDD;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
+import com.helger.xml.microdom.IMicroElement;
+import com.helger.xml.microdom.MicroElement;
+import com.helger.xml.microdom.serialize.MicroWriter;
 import com.helger.xml.serialize.read.DOMReader;
+import com.helger.xml.serialize.write.EXMLSerializeIndent;
+import com.helger.xml.serialize.write.XMLWriterSettings;
 
 import jakarta.annotation.Nonnull;
 
@@ -47,6 +55,7 @@ public final class ApiPostDetermineDocDetails extends AbstractAPIInvoker
                          @Nonnull final IRequestWebScopeWithoutResponse aRequestScope,
                          @Nonnull final PhotonUnifiedResponse aUnifiedResponse) throws IOException
   {
+    aUnifiedResponse.disableCaching ();
     final String sLogPrefix = "[DETERMINE-" + AppVersion.getVersionNumber () + "-" + COUNTER.incrementAndGet () + "] ";
 
     // Check request validity
@@ -88,15 +97,34 @@ public final class ApiPostDetermineDocDetails extends AbstractAPIInvoker
       return;
     }
 
-    final IJsonObject aJson = aDD.getAsJson ();
-
-    if (AppConfig.isLogResponsePayload ())
+    final AcceptMimeTypeList aAcceptMimeTypes = RequestHelper.getAcceptMimeTypes (aRequestScope.getRequest ());
+    if (aAcceptMimeTypes.explicitlySupportsMimeType (CMimeType.APPLICATION_XML))
     {
-      LOGGER.info (sLogPrefix +
-                   "Response JSON is:\n" +
-                   new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
-    }
+      // Provide response as XML
+      IMicroElement eRoot = new MicroElement ("documentDetails");
+      aDD.appendToMicroElement (eRoot);
 
-    aUnifiedResponse.json (aJson);
+      if (AppConfig.isLogResponsePayload ())
+      {
+        LOGGER.info (sLogPrefix +
+                     "Response XML is:\n" +
+                     MicroWriter.getNodeAsString (eRoot,
+                                                  new XMLWriterSettings ().setIndent (EXMLSerializeIndent.INDENT_AND_ALIGN)));
+      }
+      aUnifiedResponse.xml (eRoot);
+    }
+    else
+    {
+      final IJsonObject aJson = aDD.getAsJson ();
+
+      if (AppConfig.isLogResponsePayload ())
+      {
+        LOGGER.info (sLogPrefix +
+                     "Response JSON is:\n" +
+                     new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
+      }
+
+      aUnifiedResponse.json (aJson);
+    }
   }
 }
