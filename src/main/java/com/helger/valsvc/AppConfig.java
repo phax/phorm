@@ -5,12 +5,12 @@
  */
 package com.helger.valsvc;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import com.helger.base.debug.GlobalDebug;
 import com.helger.config.ConfigFactory;
 import com.helger.config.IConfig;
-
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 
 /**
  * This class provides access to the settings as contained in the
@@ -24,7 +24,7 @@ public final class AppConfig
   private AppConfig ()
   {}
 
-  @Nonnull
+  @NonNull
   public static IConfig getConfig ()
   {
     return ConfigFactory.getDefaultConfig ();

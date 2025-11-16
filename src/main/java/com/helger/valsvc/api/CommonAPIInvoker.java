@@ -8,6 +8,8 @@ package com.helger.valsvc.api;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+import org.jspecify.annotations.NonNull;
+
 import com.helger.annotation.concurrent.Immutable;
 import com.helger.base.iface.IThrowingRunnable;
 import com.helger.base.timing.StopWatch;
@@ -17,8 +19,6 @@ import com.helger.phive.result.json.PhiveJsonHelper;
 import com.helger.phive.result.xml.PhiveXMLHelper;
 import com.helger.xml.microdom.IMicroElement;
 
-import jakarta.annotation.Nonnull;
-
 @Immutable
 public final class CommonAPIInvoker
 {
@@ -27,7 +27,7 @@ public final class CommonAPIInvoker
   private CommonAPIInvoker ()
   {}
 
-  public static void invoke (@Nonnull final IJsonObject aJson, @Nonnull final IThrowingRunnable <Exception> r)
+  public static void invoke (@NonNull final IJsonObject aJson, @NonNull final IThrowingRunnable <Exception> r)
   {
     final ZonedDateTime aQueryDT = PDTFactory.getCurrentZonedDateTimeUTC ();
     final StopWatch aSW = StopWatch.createdStarted ();
@@ -46,7 +46,7 @@ public final class CommonAPIInvoker
     aJson.add ("invocationDurationMillis", aSW.getMillis ());
   }
 
-  public static void invoke (@Nonnull final IMicroElement aXML, @Nonnull final IThrowingRunnable <Exception> r)
+  public static void invoke (@NonNull final IMicroElement aXML, @NonNull final IThrowingRunnable <Exception> r)
   {
     final ZonedDateTime aQueryDT = PDTFactory.getCurrentZonedDateTimeUTC ();
     final StopWatch aSW = StopWatch.createdStarted ();

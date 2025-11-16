@@ -7,20 +7,20 @@ package com.helger.valsvc;
 
 import java.util.Map;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import com.helger.annotation.Nonempty;
 import com.helger.photon.core.interror.InternalErrorBuilder;
 import com.helger.photon.core.interror.callback.AbstractErrorCallback;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
-
 public final class AppErrorHandler extends AbstractErrorCallback
 {
   @Override
-  protected void onError (@Nonnull final Throwable t,
+  protected void onError (@NonNull final Throwable t,
                           @Nullable final IRequestWebScopeWithoutResponse aRequestScope,
-                          @Nonnull @Nonempty final String sErrorCode,
+                          @NonNull @Nonempty final String sErrorCode,
                           @Nullable final Map <String, String> aCustomAttrs)
   {
     new InternalErrorBuilder ().setThrowable (t)

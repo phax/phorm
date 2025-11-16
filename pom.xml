@@ -43,56 +43,56 @@
       <dependency>
         <groupId>com.helger.commons</groupId>
         <artifactId>ph-commons-parent-pom</artifactId>
-        <version>12.0.4</version>
+        <version>12.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.web</groupId>
         <artifactId>ph-web-parent-pom</artifactId>
-        <version>11.1.1</version>
+        <version>11.2.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.photon</groupId>
         <artifactId>ph-oton-parent-pom</artifactId>
-        <version>10.0.1</version>
+        <version>10.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.ubl</groupId>
         <artifactId>ph-ubl-parent-pom</artifactId>
-        <version>10.0.0</version>
+        <version>10.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.cii</groupId>
         <artifactId>ph-cii-parent-pom</artifactId>
-        <version>4.0.0</version>
+        <version>4.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.schematron</groupId>
         <artifactId>ph-schematron-parent-pom</artifactId>
-        <version>9.0.1</version>
+        <version>9.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.diver</groupId>
         <artifactId>ph-diver-parent-pom</artifactId>
-        <version>4.0.0</version>
+        <version>4.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.phive</groupId>
         <artifactId>phive-parent-pom</artifactId>
-        <version>11.0.1</version>
+        <version>11.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -100,14 +100,14 @@
       <dependency>
         <groupId>com.helger.phive.rules</groupId>
         <artifactId>phive-rules-parent-pom</artifactId>
-        <version>4.0.3</version>
+        <version>4.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger</groupId>
         <artifactId>ddd</artifactId>
-        <version>0.7.2</version>
+        <version>0.8.0</version>
       </dependency>
 
       <dependency>

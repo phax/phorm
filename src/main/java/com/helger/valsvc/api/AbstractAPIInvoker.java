@@ -8,6 +8,7 @@ package com.helger.valsvc.api;
 import java.io.IOException;
 import java.util.Map;
 
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +21,6 @@ import com.helger.photon.app.PhotonUnifiedResponse;
 import com.helger.servlet.response.UnifiedResponse;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 
-import jakarta.annotation.Nonnull;
-
 /**
  * Abstract base invoker for REST API
  *
@@ -32,17 +31,17 @@ public abstract class AbstractAPIInvoker implements IAPIExecutor
   public static final String HEADER_X_TOKEN = "X-Token";
   private static final Logger LOGGER = LoggerFactory.getLogger (AbstractAPIInvoker.class);
 
-  public abstract void invokeAPI (@Nonnull final IAPIDescriptor aAPIDescriptor,
-                                  @Nonnull @Nonempty final String sPath,
-                                  @Nonnull final Map <String, String> aPathVariables,
-                                  @Nonnull final IRequestWebScopeWithoutResponse aRequestScope,
-                                  @Nonnull final PhotonUnifiedResponse aUnifiedResponse) throws IOException;
+  public abstract void invokeAPI (@NonNull final IAPIDescriptor aAPIDescriptor,
+                                  @NonNull @Nonempty final String sPath,
+                                  @NonNull final Map <String, String> aPathVariables,
+                                  @NonNull final IRequestWebScopeWithoutResponse aRequestScope,
+                                  @NonNull final PhotonUnifiedResponse aUnifiedResponse) throws IOException;
 
-  public final void invokeAPI (@Nonnull final IAPIDescriptor aAPIDescriptor,
-                               @Nonnull @Nonempty final String sPath,
-                               @Nonnull final Map <String, String> aPathVariables,
-                               @Nonnull final IRequestWebScopeWithoutResponse aRequestScope,
-                               @Nonnull final UnifiedResponse aUnifiedResponse) throws Exception
+  public final void invokeAPI (@NonNull final IAPIDescriptor aAPIDescriptor,
+                               @NonNull @Nonempty final String sPath,
+                               @NonNull final Map <String, String> aPathVariables,
+                               @NonNull final IRequestWebScopeWithoutResponse aRequestScope,
+                               @NonNull final UnifiedResponse aUnifiedResponse) throws Exception
   {
     final StopWatch aSW = StopWatch.createdStarted ();
 

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -36,8 +37,6 @@ import com.helger.xml.serialize.read.DOMReader;
 import com.helger.xml.serialize.write.EXMLSerializeIndent;
 import com.helger.xml.serialize.write.XMLWriterSettings;
 
-import jakarta.annotation.Nonnull;
-
 /**
  * Determine the document type and return it
  *
@@ -49,11 +48,11 @@ public final class ApiPostDetermineDocDetails extends AbstractAPIInvoker
   private static final AtomicInteger COUNTER = new AtomicInteger (0);
 
   @Override
-  public void invokeAPI (@Nonnull final IAPIDescriptor aAPIDescriptor,
-                         @Nonnull @Nonempty final String sPath,
-                         @Nonnull final Map <String, String> aPathVariables,
-                         @Nonnull final IRequestWebScopeWithoutResponse aRequestScope,
-                         @Nonnull final PhotonUnifiedResponse aUnifiedResponse) throws IOException
+  public void invokeAPI (@NonNull final IAPIDescriptor aAPIDescriptor,
+                         @NonNull @Nonempty final String sPath,
+                         @NonNull final Map <String, String> aPathVariables,
+                         @NonNull final IRequestWebScopeWithoutResponse aRequestScope,
+                         @NonNull final PhotonUnifiedResponse aUnifiedResponse) throws IOException
   {
     aUnifiedResponse.disableCaching ();
     final String sLogPrefix = "[DETERMINE-" + AppVersion.getVersionNumber () + "-" + COUNTER.incrementAndGet () + "] ";

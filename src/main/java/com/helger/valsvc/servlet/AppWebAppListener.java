@@ -7,6 +7,8 @@ package com.helger.valsvc.servlet;
 
 import java.time.OffsetDateTime;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.helger.base.CGlobal;
@@ -31,8 +33,6 @@ import com.helger.valsvc.api.ApiPostDetermineDocTypeAndValidate;
 import com.helger.valsvc.api.ApiPostValidate;
 import com.helger.xservlet.requesttrack.RequestTrackerSettings;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import jakarta.servlet.ServletContext;
 
 /**
@@ -56,31 +56,31 @@ public final class AppWebAppListener extends WebAppListener
   }
 
   @Override
-  protected String getInitParameterDebug (@Nonnull final ServletContext aSC)
+  protected String getInitParameterDebug (@NonNull final ServletContext aSC)
   {
     return AppConfig.getGlobalDebug ();
   }
 
   @Override
-  protected String getInitParameterProduction (@Nonnull final ServletContext aSC)
+  protected String getInitParameterProduction (@NonNull final ServletContext aSC)
   {
     return AppConfig.getGlobalProduction ();
   }
 
   @Override
-  protected String getDataPath (@Nonnull final ServletContext aSC)
+  protected String getDataPath (@NonNull final ServletContext aSC)
   {
     return AppConfig.getDataPath ();
   }
 
   @Override
-  protected boolean shouldCheckFileAccess (@Nonnull final ServletContext aSC)
+  protected boolean shouldCheckFileAccess (@NonNull final ServletContext aSC)
   {
     return AppConfig.isCheckFileAccess ();
   }
 
   @Override
-  protected String getInitParameterNoStartupInfo (@Nonnull final ServletContext aSC)
+  protected String getInitParameterNoStartupInfo (@NonNull final ServletContext aSC)
   {
     return "true";
   }
@@ -112,7 +112,7 @@ public final class AppWebAppListener extends WebAppListener
   }
 
   @Override
-  protected void initLocales (@Nonnull final ILocaleManager aLocaleMgr)
+  protected void initLocales (@NonNull final ILocaleManager aLocaleMgr)
   {
     aLocaleMgr.registerLocale (CApp.DEFAULT_LOCALE);
     aLocaleMgr.setDefaultLocale (CApp.DEFAULT_LOCALE);
@@ -133,7 +133,7 @@ public final class AppWebAppListener extends WebAppListener
   }
 
   @Override
-  protected void initAPI (@Nonnull final IAPIRegistry aAPIRegistry)
+  protected void initAPI (@NonNull final IAPIRegistry aAPIRegistry)
   {
     aAPIRegistry.registerAPI (new APIDescriptor (APIPath.post ("/validate/{vesid}"), ApiPostValidate.class));
     aAPIRegistry.registerAPI (new APIDescriptor (APIPath.post ("/dd_and_validate"),

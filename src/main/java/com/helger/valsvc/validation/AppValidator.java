@@ -8,6 +8,8 @@ package com.helger.valsvc.validation;
 import java.util.Comparator;
 import java.util.Locale;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Document;
 
 import com.helger.collection.commons.ICommonsList;
@@ -44,9 +46,6 @@ import com.helger.phive.xml.source.ValidationSourceXML;
 import com.helger.phive.xrechnung.XRechnungValidation;
 import com.helger.phive.zatca.ZATCAValidation;
 import com.helger.phive.zugferd.ZugferdValidation;
-
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 
 /**
  * Default validation repository
@@ -86,26 +85,26 @@ public class AppValidator
     ZugferdValidation.initZugferd (VESREG);
   }
 
-  @Nonnull
+  @NonNull
   public static ICommonsList <IValidationExecutorSet <IValidationSourceXML>> getAllVES ()
   {
     return VESREG.getAll ();
   }
 
-  @Nonnull
+  @NonNull
   public static ICommonsList <IValidationExecutorSet <IValidationSourceXML>> getAllVESSorted ()
   {
     return VESREG.getAll ().getSortedInline (Comparator.comparing (x -> x.getID ().getAsSingleID ()));
   }
 
   @Nullable
-  public static IValidationExecutorSet <IValidationSourceXML> getVESOrNull (@Nonnull final DVRCoordinate aVESID)
+  public static IValidationExecutorSet <IValidationSourceXML> getVESOrNull (@NonNull final DVRCoordinate aVESID)
   {
     return VESREG.getOfID (aVESID);
   }
 
   @Nullable
-  public static String getLatestVersion (@Nonnull final DVRCoordinate aVESID)
+  public static String getLatestVersion (@NonNull final DVRCoordinate aVESID)
   {
     final IValidationExecutorSet <IValidationSourceXML> aLatest = VESREG.getLatestVersion (aVESID.getGroupID (),
                                                                                            aVESID.getArtifactID (),
@@ -113,8 +112,8 @@ public class AppValidator
     return aLatest == null ? null : aLatest.getID ().getVersionString ();
   }
 
-  @Nonnull
-  public static IValidationExecutorSet <IValidationSourceXML> getVES (@Nonnull final DVRCoordinate aVESID)
+  @NonNull
+  public static IValidationExecutorSet <IValidationSourceXML> getVES (@NonNull final DVRCoordinate aVESID)
   {
     final IValidationExecutorSet <IValidationSourceXML> aVES = VESREG.getOfID (aVESID);
     if (aVES == null)
@@ -125,10 +124,10 @@ public class AppValidator
   private AppValidator ()
   {}
 
-  @Nonnull
-  public static ValidationResultList validate (@Nonnull final DVRCoordinate aVESID,
-                                               @Nonnull final Document aDoc,
-                                               @Nonnull final Locale aDisplayLocale)
+  @NonNull
+  public static ValidationResultList validate (@NonNull final DVRCoordinate aVESID,
+                                               @NonNull final Document aDoc,
+                                               @NonNull final Locale aDisplayLocale)
   {
     // Start validation
     return ValidationExecutionManager.executeValidation (IValidityDeterminator.createDefault (),

@@ -8,6 +8,7 @@ package com.helger.valsvc.servlet;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +27,6 @@ import com.helger.valsvc.AppVersion;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 import com.helger.xservlet.handler.simple.IXServletSimpleHandler;
 
-import jakarta.annotation.Nonnull;
-
 /**
  * Create status as JSON object.
  *
@@ -38,7 +37,7 @@ public class StatusXServletHandler implements IXServletSimpleHandler
   private static final Logger LOGGER = LoggerFactory.getLogger (StatusXServletHandler.class);
   private static final Charset CHARSET = StandardCharsets.UTF_8;
 
-  @Nonnull
+  @NonNull
   @ReturnsMutableCopy
   public static IJsonObject getDefaultStatusData ()
   {
@@ -55,8 +54,8 @@ public class StatusXServletHandler implements IXServletSimpleHandler
     return aStatusData;
   }
 
-  public void handleRequest (@Nonnull final IRequestWebScopeWithoutResponse aRequestScope,
-                             @Nonnull final UnifiedResponse aUnifiedResponse) throws Exception
+  public void handleRequest (@NonNull final IRequestWebScopeWithoutResponse aRequestScope,
+                             @NonNull final UnifiedResponse aUnifiedResponse) throws Exception
   {
     if (LOGGER.isDebugEnabled ())
       LOGGER.debug ("Status information requested");

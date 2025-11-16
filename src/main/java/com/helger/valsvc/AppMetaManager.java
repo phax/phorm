@@ -5,6 +5,7 @@
  */
 package com.helger.valsvc;
 
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,8 +14,6 @@ import com.helger.base.exception.InitializationException;
 import com.helger.base.lang.clazz.ClassHelper;
 import com.helger.scope.IScope;
 import com.helger.scope.singleton.AbstractGlobalSingleton;
-
-import jakarta.annotation.Nonnull;
 
 public final class AppMetaManager extends AbstractGlobalSingleton
 {
@@ -31,7 +30,7 @@ public final class AppMetaManager extends AbstractGlobalSingleton
   }
 
   @Override
-  protected void onAfterInstantiation (@Nonnull final IScope aScope)
+  protected void onAfterInstantiation (@NonNull final IScope aScope)
   {
     try
     {
@@ -48,7 +47,7 @@ public final class AppMetaManager extends AbstractGlobalSingleton
     }
   }
 
-  @Nonnull
+  @NonNull
   public static AppMetaManager getInstance ()
   {
     return getGlobalSingleton (AppMetaManager.class);

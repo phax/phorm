@@ -5,6 +5,8 @@
  */
 package com.helger.valsvc.servlet;
 
+import org.jspecify.annotations.NonNull;
+
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.html.hc.html.grouping.HCUL;
 import com.helger.html.hc.html.root.HCHtml;
@@ -22,16 +24,14 @@ import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 import com.helger.xservlet.AbstractXServlet;
 import com.helger.xservlet.handler.simple.IXServletSimpleHandler;
 
-import jakarta.annotation.Nonnull;
-
 public class RootServlet extends AbstractXServlet
 {
   private static final class Hdl implements IXServletSimpleHandler, IHCTrait
   {
     private static final String PARAM_INCLUDE_DEPRECATED = "include-deprecated";
 
-    public void handleRequest (@Nonnull final IRequestWebScopeWithoutResponse aRequestScope,
-                               @Nonnull final UnifiedResponse aUnifiedResponse) throws Exception
+    public void handleRequest (@NonNull final IRequestWebScopeWithoutResponse aRequestScope,
+                               @NonNull final UnifiedResponse aUnifiedResponse) throws Exception
     {
       final boolean bIncludeDeprecated = aRequestScope.params ().containsKey (PARAM_INCLUDE_DEPRECATED);
 

@@ -8,6 +8,7 @@ package com.helger.valsvc.api;
 import java.io.IOException;
 import java.util.Map;
 
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +30,6 @@ import com.helger.valsvc.AppConfig;
 import com.helger.valsvc.validation.AppValidator;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 
-import jakarta.annotation.Nonnull;
-
 /**
  * Get all registered VES IDs
  *
@@ -41,11 +40,11 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
   private static final Logger LOGGER = LoggerFactory.getLogger (ApiGetAllVESIDs.class);
 
   @Override
-  public void invokeAPI (@Nonnull final IAPIDescriptor aAPIDescriptor,
-                         @Nonnull @Nonempty final String sPath,
-                         @Nonnull final Map <String, String> aPathVariables,
-                         @Nonnull final IRequestWebScopeWithoutResponse aRequestScope,
-                         @Nonnull final PhotonUnifiedResponse aUnifiedResponse) throws IOException
+  public void invokeAPI (@NonNull final IAPIDescriptor aAPIDescriptor,
+                         @NonNull @Nonempty final String sPath,
+                         @NonNull final Map <String, String> aPathVariables,
+                         @NonNull final IRequestWebScopeWithoutResponse aRequestScope,
+                         @NonNull final PhotonUnifiedResponse aUnifiedResponse) throws IOException
   {
     final boolean bIncludeDeprecated = aRequestScope.params ().containsKey ("include-deprecated");
     final String sLogPrefix = "[GetAllVesIDs] ";

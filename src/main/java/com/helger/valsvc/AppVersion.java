@@ -5,13 +5,13 @@
  */
 package com.helger.valsvc;
 
+import org.jspecify.annotations.NonNull;
+
 import com.helger.annotation.concurrent.Immutable;
 import com.helger.base.exception.InitializationException;
 import com.helger.base.rt.NonBlockingProperties;
 import com.helger.base.rt.PropertiesHelper;
 import com.helger.io.resource.ClassPathResource;
-
-import jakarta.annotation.Nonnull;
 
 /**
  * Validation Service version number
@@ -50,7 +50,7 @@ public final class AppVersion
    * @return The version number of the ValSvc read from the internal properties file. Never
    *         <code>null</code>.
    */
-  @Nonnull
+  @NonNull
   public static String getVersionNumber ()
   {
     return VERSION_NUMBER;
@@ -60,7 +60,7 @@ public final class AppVersion
    * @return The build timestamp of the ValSvc read from the internal properties file. Never
    *         <code>null</code>.
    */
-  @Nonnull
+  @NonNull
   public static String getBuildTimestamp ()
   {
     return TIMESTAMP;
