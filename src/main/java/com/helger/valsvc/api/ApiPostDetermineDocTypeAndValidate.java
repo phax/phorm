@@ -104,11 +104,11 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
     }
 
     // Determine document details
-    LOGGER.info (sLogPrefix + "Trying to determine payload type");
+    LOGGER.info (sLogPrefix + "Trying to determine document details");
     final DocumentDetails aDD = ValSvcDDD.findDocumentDetails (aDoc.getDocumentElement ());
     if (aDD == null || !aDD.hasVESID ())
     {
-      final String sErrorMsg = "Failed to determine the document types";
+      final String sErrorMsg = "Failed to determine the document type details";
       LOGGER.error (sLogPrefix + sErrorMsg);
       aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
       return;
