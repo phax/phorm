@@ -35,7 +35,7 @@
   </developers>
   
   <properties>
-    <log4j.version>2.25.2</log4j.version>
+    <log4j.version>2.25.3</log4j.version>
   </properties>
   
   <dependencyManagement>
