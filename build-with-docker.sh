@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2022-2025 Philip Helger
+# Copyright (C) 2022-2026 Philip Helger
 #
 # All rights reserved.
 #

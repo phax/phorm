@@ -1,3 +1,9 @@
+#
+# Copyright (C) 2022-2026 Philip Helger
+#
+# All rights reserved.
+#
+
 # This workflow will build and push a Docker container to an Azure Web App when a commit is pushed to your default branch.
 #
 # This workflow assumes you have already created the target Azure App Service web app.
