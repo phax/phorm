@@ -56,6 +56,7 @@ import com.helger.phive.zugferd.ZugferdValidation;
 public class AppValidator
 {
   private static final ValidationExecutorSetRegistry <IValidationSourceXML> VESREG = new ValidationExecutorSetRegistry <> ();
+  private static final IValidityDeterminator <IValidationSourceXML> VD = IValidityDeterminator.createDefault ();
   static
   {
     EN16931Validation.initEN16931 (VESREG);
@@ -131,15 +132,13 @@ public class AppValidator
     return aVES;
   }
 
-  public static final IValidityDeterminator <IValidationSourceXML> VD = IValidityDeterminator.createDefault ();
-
   @NonNull
-  public static ValidationResultList validate (@NonNull final DVRCoordinate aVESID,
+  public static ValidationResultList validate (@NonNull final IValidationExecutorSet <IValidationSourceXML> aVES,
                                                @NonNull final Document aDoc,
                                                @NonNull final Locale aDisplayLocale)
   {
     final ValidationSourceXML aSrc = ValidationSourceXML.create ("uploaded content", aDoc);
     // Start validation
-    return new ValidationExecutionManager <> (VD, getVES (aVESID)).executeValidation (aSrc, aDisplayLocale);
+    return new ValidationExecutionManager <> (VD, aVES).executeValidation (aSrc, aDisplayLocale);
   }
 }

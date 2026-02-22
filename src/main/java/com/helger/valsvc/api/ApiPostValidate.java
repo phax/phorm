@@ -127,7 +127,7 @@ public class ApiPostValidate extends AbstractAPIInvoker
       LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
 
       // Perform validation
-      final ValidationResultList aValidationResultList = AppValidator.validate (aVESID, aDoc, aDisplayLocale);
+      final ValidationResultList aValidationResultList = AppValidator.validate (aVES, aDoc, aDisplayLocale);
       aWrappedVRL.set (aValidationResultList);
 
       if (aValidationResultList.getOverallValidity ().isValid ())
