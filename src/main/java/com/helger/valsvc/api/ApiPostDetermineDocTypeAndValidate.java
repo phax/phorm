@@ -6,6 +6,7 @@
 package com.helger.valsvc.api;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,9 +17,9 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import com.helger.annotation.Nonempty;
-import com.helger.base.iface.IThrowingRunnable;
+import com.helger.base.io.stream.StreamHelper;
 import com.helger.base.string.StringHelper;
-import com.helger.base.timing.StopWatch;
+import com.helger.base.wrapper.Wrapper;
 import com.helger.ddd.DocumentDetails;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.http.CHttp;
@@ -28,13 +29,15 @@ import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.mime.CMimeType;
+import com.helger.phive.api.executorset.IValidationExecutorSet;
 import com.helger.phive.api.result.ValidationResultList;
+import com.helger.phive.result.html.PhiveHtmlHelper;
 import com.helger.phive.result.json.JsonValidationResultListHelper;
-import com.helger.phive.result.json.PhiveJsonHelper;
-import com.helger.phive.result.xml.PhiveXMLHelper;
 import com.helger.phive.result.xml.XMLValidationResultListHelper;
+import com.helger.phive.xml.source.IValidationSourceXML;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
+import com.helger.schematron.svrl.SVRLResourceError;
 import com.helger.servlet.request.RequestHelper;
 import com.helger.valsvc.AppConfig;
 import com.helger.valsvc.AppVersion;
@@ -94,7 +97,8 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
 
     // Read the payload as XML
     LOGGER.info (sLogPrefix + "Trying to read payload as XML");
-    final Document aDoc = DOMReader.readXMLDOM (aRequestScope.getRequest ().getInputStream ());
+    final byte [] aPayloadBytes = StreamHelper.getAllBytes (aRequestScope.getRequest ().getInputStream ());
+    final Document aDoc = DOMReader.readXMLDOM (aPayloadBytes);
     if (aDoc == null || aDoc.getDocumentElement () == null)
     {
       final String sErrorMsg = "Failed to read the message body as XML";
@@ -123,7 +127,8 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
       return;
     }
-    if (AppValidator.getVESOrNull (aVESID) == null)
+    final IValidationExecutorSet <IValidationSourceXML> aVES = AppValidator.getVES (aVESID);
+    if (aVES == null)
     {
       final String sErrorMsg = "The VESID '" + sVESID + "' could not be resolved.";
       LOGGER.error (sLogPrefix + sErrorMsg);
@@ -132,53 +137,30 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
     }
 
     final Locale aDisplayLocale = CApp.DEFAULT_LOCALE;
-    final IJsonObject aResultJson = new JsonObject ();
-    final IMicroDocument aResultXML = new MicroDocument ();
-    final IMicroElement aResultXMLRoot = aResultXML.addElement ("validationResults");
+    final Wrapper <ValidationResultList> aWrappedVRL = Wrapper.empty ();
 
-    final IThrowingRunnable <Exception> aRunnable = () -> {
-      final boolean bOverallSuccess;
+    final Runnable aRunnable = () -> {
+      // validation
+      LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
+
+      // Perform validation
+      final ValidationResultList aValidationResultList = AppValidator.validate (aVESID, aDoc, aDisplayLocale);
+      aWrappedVRL.set (aValidationResultList);
+
+      if (aValidationResultList.getOverallValidity ().isValid ())
       {
-        // validation
-        final StopWatch aSW = StopWatch.createdStarted ();
-
-        LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
-
-        // Perform validation
-        final ValidationResultList aValidationResultList = AppValidator.validate (aVESID, aDoc, aDisplayLocale);
-        aSW.stop ();
-
-        // Convert to JSON/XML
-        // Don't emit validation source content
-        final boolean bEmitValidationSourceContent = false;
-        new JsonValidationResultListHelper ().ves (AppValidator.getVES (aVESID))
-                                             .sourceToJson (vs -> PhiveJsonHelper.getJsonValidationSource (vs,
-                                                                                                           bEmitValidationSourceContent))
-                                             .applyTo (aResultJson,
-                                                       aValidationResultList,
-                                                       aDisplayLocale,
-                                                       aSW.getMillis ());
-        new XMLValidationResultListHelper ().ves (AppValidator.getVES (aVESID))
-                                            .sourceToXML (vs -> PhiveXMLHelper.getXMLValidationSource (vs,
-                                                                                                       bEmitValidationSourceContent,
-                                                                                                       PhiveXMLHelper.XML_VALIDATION_SOURCE))
-                                            .applyTo (aResultXMLRoot,
-                                                      aValidationResultList,
-                                                      aDisplayLocale,
-                                                      aSW.getMillis ());
-
-        bOverallSuccess = aValidationResultList.containsNoError ();
-        if (bOverallSuccess)
-          LOGGER.info (sLogPrefix + "Validation was performed and no errors were found (" + aSW.getMillis () + " ms)");
-        else
-          LOGGER.error (sLogPrefix +
-                        "Don't send out the document because it contains validation errors (" +
-                        aSW.getMillis () +
-                        " ms)");
+        LOGGER.info (sLogPrefix +
+                     "Validation was performed and the document is considered valid (" +
+                     aValidationResultList.getValidationDuration () +
+                     ")");
       }
-
-      if (!bOverallSuccess)
+      else
       {
+        LOGGER.error (sLogPrefix +
+                      "Don't send out the document as the document is considered invalid (" +
+                      aValidationResultList.getValidationDuration () +
+                      ")");
+
         if (AppConfig.isUseHttp400OnValidationFailure ())
         {
           // Return error status
@@ -187,13 +169,24 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       }
     };
 
+    // Don't emit validation source content
+    final boolean bEmitValidationSourceContent = false;
+
     final AcceptMimeTypeList aAcceptMimeTypes = RequestHelper.getAcceptMimeTypes (aRequestScope.getRequest ());
     if (aAcceptMimeTypes.explicitlySupportsMimeType (CMimeType.APPLICATION_XML))
     {
       // Provide response as XML
+      final IMicroDocument aResultXML = new MicroDocument ();
+      final IMicroElement aResultXMLRoot = aResultXML.addElement ("validationResults");
       aDD.appendToMicroElement (aResultXMLRoot);
 
-      CommonAPIInvoker.invoke (aResultXMLRoot, aRunnable);
+      CommonAPIInvoker.invoke (aResultXMLRoot, aRunnable::run);
+
+      // Perform conversion
+      new XMLValidationResultListHelper ().ves (aVES)
+                                          .sourceToXMLDefault (bEmitValidationSourceContent)
+                                          .applyTo (aResultXMLRoot, aWrappedVRL.get (), aDisplayLocale);
+
       if (AppConfig.isLogResponsePayload ())
       {
         LOGGER.info (sLogPrefix +
@@ -204,18 +197,49 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       aUnifiedResponse.xml (aResultXML);
     }
     else
-    {
-      // Provide response as JSON
-      aResultJson.add ("documentDetails", aDD.getAsJson ());
-
-      CommonAPIInvoker.invoke (aResultJson, aRunnable);
-      if (AppConfig.isLogResponsePayload ())
+      if (aAcceptMimeTypes.explicitlySupportsMimeType (CMimeType.TEXT_HTML))
       {
-        LOGGER.info (sLogPrefix +
-                     "Response JSON is:\n" +
-                     new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aResultJson));
+        // Provide response as HTML
+        aRunnable.run ();
+
+        // Perform conversion
+        final String sResultHtml = new PhiveHtmlHelper (aDisplayLocale).useDefaultCSS ()
+                                                                       .ves (aVES)
+                                                                       .errorTestExtractor ( (error,
+                                                                                              locale) -> error instanceof final SVRLResourceError aSvrlError ? aSvrlError.getTest ()
+                                                                                                                                                             : null)
+                                                                       .sourceData (bEmitValidationSourceContent ? new String (aPayloadBytes,
+                                                                                                                               StandardCharsets.UTF_8)
+                                                                                                                 : null)
+                                                                       .createHtml (aWrappedVRL.get (),
+                                                                                    new XMLWriterSettings ().setIndent (EXMLSerializeIndent.INDENT_AND_ALIGN));
+
+        if (AppConfig.isLogResponsePayload ())
+        {
+          LOGGER.info (sLogPrefix + "Response HTML is:\n" + sResultHtml);
+        }
+        aUnifiedResponse.setContentAndCharset (sResultHtml, StandardCharsets.UTF_8).setMimeType (CMimeType.TEXT_HTML);
       }
-      aUnifiedResponse.json (aResultJson);
-    }
+      else
+      {
+        // Provide response as JSON
+        final IJsonObject aResultJson = new JsonObject ();
+        aResultJson.add ("documentDetails", aDD.getAsJson ());
+
+        CommonAPIInvoker.invoke (aResultJson, aRunnable::run);
+
+        // Perform conversion
+        new JsonValidationResultListHelper ().ves (aVES)
+                                             .sourceToJsonDefault (bEmitValidationSourceContent)
+                                             .applyTo (aResultJson, aWrappedVRL.get (), aDisplayLocale);
+
+        if (AppConfig.isLogResponsePayload ())
+        {
+          LOGGER.info (sLogPrefix +
+                       "Response JSON is:\n" +
+                       new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aResultJson));
+        }
+        aUnifiedResponse.json (aResultJson);
+      }
   }
 }

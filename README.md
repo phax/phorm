@@ -54,7 +54,9 @@ The services offers the following APIs.
 * POST **`/api/dd_and_validate`**
   * Determine the document type and afterwards validate the provided payload in the body against the determined validation rules
   * Requires the HTTP header `X-Token` to have the configured value (see below for `valsvc.api.requiredtoken`)
-  * If the HTTP Request Header `Accept` with value `application/xml`  is present, the result is an XML structure. Else the result is a JSON structure
+  * If the HTTP Request Header `Accept` with value `application/xml` is present, the result is an XML structure.
+    If the HTTP Request Header `Accept` with value `text/html` is present, the result is an HTML file.
+    Else the result is a JSON structure
   * Test invocation (replace `XXX` with real token):
     * `curl -X POST -H "Content-Type: application/xml" -H "X-Token: XXX" -d @src/test/resources/testfiles/peppol-bis3/base-example.xml http://localhost:8080/api/dd_and_validate/`
 
@@ -130,8 +132,11 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+* 2026-02-22
+    * Updated to phive 12.0.0 and phive-rules 4.2.0
+    * Both `/api/validate/` and `/api/dd_and_validate` are now able to create HTML results (first draft)
 * 2026-02-18
-    * phive-rules 4.1.8
+    * Updated to phive-rules 4.1.8
 * 2025-09-02
     * The API `/api/determinedoctype` can now also return XML payload
     * Fixed an error with the document type ID scheme for PINT document types in determination

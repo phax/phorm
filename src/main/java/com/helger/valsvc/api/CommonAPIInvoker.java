@@ -15,15 +15,15 @@ import com.helger.base.iface.IThrowingRunnable;
 import com.helger.base.timing.StopWatch;
 import com.helger.datetime.helper.PDTFactory;
 import com.helger.json.IJsonObject;
+import com.helger.phive.result.json.CPhiveJson;
 import com.helger.phive.result.json.PhiveJsonHelper;
+import com.helger.phive.result.xml.CPhiveXML;
 import com.helger.phive.result.xml.PhiveXMLHelper;
 import com.helger.xml.microdom.IMicroElement;
 
 @Immutable
 public final class CommonAPIInvoker
 {
-  public static final String JSON_SUCCESS = "success";
-
   private CommonAPIInvoker ()
   {}
 
@@ -37,8 +37,8 @@ public final class CommonAPIInvoker
     }
     catch (final Exception ex)
     {
-      aJson.add (JSON_SUCCESS, false);
-      aJson.add ("exception", PhiveJsonHelper.getJsonStackTrace (ex));
+      aJson.add (CPhiveJson.JSON_SUCCESS, false);
+      aJson.add (CPhiveJson.JSON_EXCEPTION, PhiveJsonHelper.getJsonStackTrace (ex));
     }
     aSW.stop ();
 
@@ -56,8 +56,8 @@ public final class CommonAPIInvoker
     }
     catch (final Exception ex)
     {
-      aXML.addElement (JSON_SUCCESS).addText (false);
-      aXML.addChild (PhiveXMLHelper.getXMLStackTrace (ex, "exception"));
+      aXML.addElement (CPhiveXML.XML_SUCCESS).addText (false);
+      aXML.addChild (PhiveXMLHelper.getXMLStackTrace (ex, CPhiveXML.XML_EXCEPTION));
     }
     aSW.stop ();
 

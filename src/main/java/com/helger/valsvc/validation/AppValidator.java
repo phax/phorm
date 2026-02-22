@@ -87,6 +87,9 @@ public class AppValidator
     ZugferdValidation.initZugferd (VESREG);
   }
 
+  private AppValidator ()
+  {}
+
   @NonNull
   public static ICommonsList <IValidationExecutorSet <IValidationSourceXML>> getAllVES ()
   {
@@ -97,6 +100,11 @@ public class AppValidator
   public static ICommonsList <IValidationExecutorSet <IValidationSourceXML>> getAllVESSorted ()
   {
     return VESREG.getAll ().getSortedInline (Comparator.comparing (x -> x.getID ().getAsSingleID ()));
+  }
+
+  public static boolean containsVES (@NonNull final DVRCoordinate aVESID)
+  {
+    return getVESOrNull (aVESID) != null;
   }
 
   @Nullable
@@ -123,18 +131,15 @@ public class AppValidator
     return aVES;
   }
 
-  private AppValidator ()
-  {}
+  public static final IValidityDeterminator <IValidationSourceXML> VD = IValidityDeterminator.createDefault ();
 
   @NonNull
   public static ValidationResultList validate (@NonNull final DVRCoordinate aVESID,
                                                @NonNull final Document aDoc,
                                                @NonNull final Locale aDisplayLocale)
   {
+    final ValidationSourceXML aSrc = ValidationSourceXML.create ("uploaded content", aDoc);
     // Start validation
-    return ValidationExecutionManager.executeValidation (IValidityDeterminator.createDefault (),
-                                                         getVES (aVESID),
-                                                         ValidationSourceXML.create ("uploaded content", aDoc),
-                                                         aDisplayLocale);
+    return new ValidationExecutionManager <> (VD, getVES (aVESID)).executeValidation (aSrc, aDisplayLocale);
   }
 }
