@@ -139,6 +139,10 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+* 2026-03-18
+    * Made the repository public - thanks for all the supporters!!!
+* 2026-03-17
+    * Updated to phive 12.0.1 and phive-rules 4.2.3
 * 2026-03-12
     * **Rebranding**: the project has been renamed from "Validation Service" / "valsvc" to **Phorm**
     * The Maven artifact ID changed from `validation-service` to `phorm`, so the WAR file is now `phorm.war` instead of `validation-service.war`
