@@ -1,6 +1,6 @@
 .claude/
 .settings/
-conf/
+generated/
 target/
 
 .classpath
