@@ -30,6 +30,21 @@
   <name>phorm</name>
   <description>Phorm - Generic Document Validation Service</description>
   <inceptionYear>2022</inceptionYear>
+ 
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
+  <scm>
+    <connection>scm:git:https://github.com/phax/phorm.git</connection>
+    <developerConnection>scm:git:https://github.com/phax/phorm.git</developerConnection>
+    <url>https://github.com/phax/phorm</url>
+    <tag>HEAD</tag>
+  </scm>
 
   <organization>
     <name>Philip Helger</name>
