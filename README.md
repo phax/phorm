@@ -74,7 +74,7 @@ It supports the following settings:
 * **`webapp.checkfileaccess`**: a flag that determines whether the directory of the web application should be checked for read and write access. This is only required if the data path inside the web application and should therefore always be `false`.
 * **`webapp.testversion`**: a special indicator for the web application whether the version should be highlighted as a "test" version. Set to `true` in debug mode and `false` in production mode.
 * **`phorm.statusapi.enabled`**: a flag that indicates, if the status API (`/status`) should deliver data or not.
-* **`phorm.api.requiredtoken`**: the specific value of the `X-Token` header that must be provided to access the API. Customize this once and don't share it.
+* **`phorm.api.requiredtoken`**: the specific value of the `X-Token` header that must be provided to access the API. Customize this once and don't share it. The development default is `phorm-dev-token`.
 * **`phorm.api.response.onfailure.http400`**: a flag to indicate, whether the API should return HTTP 400 (Bad Request) on failed validations or not. The default is `true` for backwards compatibility reasons.
 * **`phorm.api.response.log.payload`**: a flag to indicate, whether the validation response should be logged in the console or not. The default is `false`.
 

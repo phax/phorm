@@ -42,7 +42,7 @@ public final class MainRunValidation
     {
       final HttpPost aPost = new HttpPost ("http://localhost:8080/api/validate/eu.peppol.bis3:invoice:latest");
       aPost.setEntity (new ByteArrayEntity (StreamHelper.getAllBytes (aRes), ContentType.APPLICATION_XML));
-      aPost.addHeader ("X-Token", "4cKyX6OKBs80nWPyOamn");
+      aPost.addHeader ("X-Token", "phorm-dev-token");
       final String ret = aHCM.execute (aPost, new ResponseHandlerString (ContentType.APPLICATION_JSON));
       System.out.println (ret);
     }

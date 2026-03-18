@@ -51,7 +51,7 @@ public class MainRunValidationMultiple
         aES.submit ( () -> {
           final HttpPost aPost = new HttpPost ("http://localhost:8080/api/validate/eu.peppol.bis3:invoice:latest");
           aPost.setEntity (new ByteArrayEntity (aPayload, ContentType.APPLICATION_XML));
-          aPost.addHeader ("X-Token", "4cKyX6OKBs80nWPyOamn");
+          aPost.addHeader ("X-Token", "4phorm-dev-token");
           try
           {
             aHCM.execute (aPost, ResponseHandlerHttpEntity.INSTANCE);
