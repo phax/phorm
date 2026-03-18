@@ -119,6 +119,17 @@ Example curl command (use the correct "X-Token" and the right address):
 curl -d "@base-example.xml" -H "Content-Type: application/xml" -H "X-Token: XXX" -X POST http://localhost:8080/api/validate/eu.peppol.bis3:invoice:latest
 ```
 
+## Standard Docker images
+
+Pre-built Docker images are available on Docker Hub:
+
+* `phelger/phorm` — for **linux/amd64**
+* `phelger/phorm-arm64` — for **linux/arm64**
+
+Both images are tagged with the specific version (e.g. `2.0.0`) as well as `latest`.
+
+The multi-architecture build script is located in `docker/build-all.sh`.
+
 # Phorm Updates
 
 If an update is made to the validation, you have to do a `git pull` and recompile.
