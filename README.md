@@ -214,3 +214,8 @@ v2.0.0 - 2026-03-18
 
 2024-01-10
 * added XRechnung rules as well
+
+---
+
+My personal [Coding Styleguide](https://github.com/phax/meta/blob/master/CodingStyleguide.md) |
+It is appreciated if you star the GitHub project if you like it.
