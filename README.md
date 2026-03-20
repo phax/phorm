@@ -1,5 +1,10 @@
 # Phorm
 
+<!-- ph-badge-start -->
+[![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.helger/phorm/badge.svg)](https://maven-badges.sml.io/sonatype-central/com.helger/phorm/)
+[![javadoc](https://javadoc.io/badge2/com.helger/phorm/javadoc.svg)](https://javadoc.io/doc/com.helger/phorm)
+<!-- ph-badge-end -->
+
 This repository contains a simple, standalone validation service (Phorm) accessible by API only.
 
 The implementation of the validation is based on the open source validation engine [phive](https://github.com/phax/phive) and the collection of rules [phive-rules](https://github.com/phax/phive-rules).
