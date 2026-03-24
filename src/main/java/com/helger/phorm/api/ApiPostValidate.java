@@ -45,14 +45,15 @@ import com.helger.phive.result.html.PhiveHtmlHelper;
 import com.helger.phive.result.json.JsonValidationResultListHelper;
 import com.helger.phive.result.xml.XMLValidationResultListHelper;
 import com.helger.phive.xml.source.IValidationSourceXML;
-import com.helger.photon.api.IAPIDescriptor;
-import com.helger.photon.app.PhotonUnifiedResponse;
-import com.helger.schematron.svrl.SVRLResourceError;
-import com.helger.servlet.request.RequestHelper;
 import com.helger.phorm.AppConfig;
 import com.helger.phorm.AppVersion;
 import com.helger.phorm.CApp;
 import com.helger.phorm.validation.AppValidator;
+import com.helger.photon.api.IAPIDescriptor;
+import com.helger.photon.app.PhotonUnifiedResponse;
+import com.helger.schematron.SchematronDebug;
+import com.helger.schematron.svrl.SVRLResourceError;
+import com.helger.servlet.request.RequestHelper;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 import com.helger.xml.microdom.IMicroDocument;
 import com.helger.xml.microdom.IMicroElement;
@@ -128,6 +129,12 @@ public class ApiPostValidate extends AbstractAPIInvoker
       LOGGER.error (sLogPrefix + sErrorMsg);
       aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
       return;
+    }
+
+    if (false)
+    {
+      SchematronDebug.setDebugMode (true);
+      SchematronDebug.setDebugLog (true);
     }
 
     final Locale aDisplayLocale = CApp.DEFAULT_LOCALE;
