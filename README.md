@@ -155,6 +155,9 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.0.1 - 2026-03-25
+* Updated to phive-rules 4.2.5
+
 v2.0.0 - 2026-03-18
 * Made the repository public - thanks for all the supporters!!!
 * Starting to use semantic versioning
