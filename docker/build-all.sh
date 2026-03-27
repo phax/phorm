@@ -16,10 +16,10 @@
 # limitations under the License.
 #
 
-version=2.0.0
+version=2.0.1
 
-echo Docker login
-docker login --username phelger
+#echo Docker login
+#echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin
 
 echo Starting buildx
 docker buildx rm phorm
