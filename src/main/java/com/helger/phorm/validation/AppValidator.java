@@ -21,7 +21,7 @@ import java.util.Locale;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 import com.helger.collection.commons.ICommonsList;
 import com.helger.diver.api.coord.DVRCoordinate;
@@ -145,10 +145,17 @@ public class AppValidator
 
   @NonNull
   public static ValidationResultList validate (@NonNull final IValidationExecutorSet <IValidationSourceXML> aVES,
-                                               @NonNull final Document aDoc,
+                                               @NonNull final Node aXmlNode,
                                                @NonNull final Locale aDisplayLocale)
   {
-    final ValidationSourceXML aSrc = ValidationSourceXML.create ("uploaded content", aDoc);
+    return validate (aVES, ValidationSourceXML.create (null, aXmlNode), aDisplayLocale);
+  }
+
+  @NonNull
+  public static ValidationResultList validate (@NonNull final IValidationExecutorSet <IValidationSourceXML> aVES,
+                                               @NonNull final IValidationSourceXML aSrc,
+                                               @NonNull final Locale aDisplayLocale)
+  {
     // Start validation
     return new ValidationExecutionManager <> (VD, aVES).executeValidation (aSrc, aDisplayLocale);
   }

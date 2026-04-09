@@ -34,12 +34,12 @@ import com.helger.json.IJsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.mime.CMimeType;
-import com.helger.photon.api.IAPIDescriptor;
-import com.helger.photon.app.PhotonUnifiedResponse;
-import com.helger.servlet.request.RequestHelper;
 import com.helger.phorm.AppConfig;
 import com.helger.phorm.AppVersion;
 import com.helger.phorm.ddd.PhormDDD;
+import com.helger.photon.api.IAPIDescriptor;
+import com.helger.photon.app.PhotonUnifiedResponse;
+import com.helger.servlet.request.RequestHelper;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 import com.helger.xml.microdom.IMicroElement;
 import com.helger.xml.microdom.MicroElement;
@@ -97,7 +97,7 @@ public final class ApiPostDetermineDocDetails extends AbstractAPIInvoker
     }
 
     LOGGER.info (sLogPrefix + "Trying to determine payload type");
-    final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement ());
+    final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement (), null);
     if (aDD == null)
     {
       final String sErrorMsg = "Failed to determine the document types";
@@ -111,7 +111,7 @@ public final class ApiPostDetermineDocDetails extends AbstractAPIInvoker
     if (aAcceptMimeTypes.explicitlySupportsMimeType (CMimeType.APPLICATION_XML))
     {
       // Provide response as XML
-      IMicroElement eRoot = new MicroElement ("documentDetails");
+      final IMicroElement eRoot = new MicroElement ("documentDetails");
       aDD.appendToMicroElement (eRoot);
 
       if (AppConfig.isLogResponsePayload ())

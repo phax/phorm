@@ -26,6 +26,7 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.helger.annotation.Nonempty;
 import com.helger.base.io.stream.StreamHelper;
@@ -46,15 +47,16 @@ import com.helger.phive.result.html.PhiveHtmlHelper;
 import com.helger.phive.result.json.JsonValidationResultListHelper;
 import com.helger.phive.result.xml.XMLValidationResultListHelper;
 import com.helger.phive.xml.source.IValidationSourceXML;
-import com.helger.photon.api.IAPIDescriptor;
-import com.helger.photon.app.PhotonUnifiedResponse;
-import com.helger.schematron.svrl.SVRLResourceError;
-import com.helger.servlet.request.RequestHelper;
+import com.helger.phive.xml.source.ValidationSourceXML;
 import com.helger.phorm.AppConfig;
 import com.helger.phorm.AppVersion;
 import com.helger.phorm.CApp;
 import com.helger.phorm.ddd.PhormDDD;
 import com.helger.phorm.validation.AppValidator;
+import com.helger.photon.api.IAPIDescriptor;
+import com.helger.photon.app.PhotonUnifiedResponse;
+import com.helger.schematron.svrl.SVRLResourceError;
+import com.helger.servlet.request.RequestHelper;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 import com.helger.xml.microdom.IMicroDocument;
 import com.helger.xml.microdom.IMicroElement;
@@ -120,7 +122,8 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
 
     // Determine document details
     LOGGER.info (sLogPrefix + "Trying to determine document details");
-    final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement ());
+    final Wrapper <Element> aInnerElement = Wrapper.empty ();
+    final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement (), aInnerElement::set);
     if (aDD == null || !aDD.hasVESID ())
     {
       final String sErrorMsg = "Failed to determine the document type details";
@@ -128,6 +131,10 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
       return;
     }
+    // If the payload was an SBDH, validate the inner element instead
+    final IValidationSourceXML aValSrc = aInnerElement.isSet () ? ValidationSourceXML.createPartial (null,
+                                                                                                     aInnerElement.get ())
+                                                                : ValidationSourceXML.create (null, aDoc);
 
     final String sVESID = aDD.getVESID ();
     final DVRCoordinate aVESID = DVRCoordinate.parseOrNull (sVESID);
@@ -155,7 +162,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
 
       // Perform validation
-      final ValidationResultList aValidationResultList = AppValidator.validate (aVES, aDoc, aDisplayLocale);
+      final ValidationResultList aValidationResultList = AppValidator.validate (aVES, aValSrc, aDisplayLocale);
       aWrappedVRL.set (aValidationResultList);
 
       if (aValidationResultList.getOverallValidity ().isValid ())

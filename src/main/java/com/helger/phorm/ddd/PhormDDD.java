@@ -16,6 +16,8 @@
  */
 package com.helger.phorm.ddd;
 
+import java.util.function.Consumer;
+
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -45,16 +47,21 @@ public final class PhormDDD
   }
 
   // Use default configuration
-  private static final DocumentDetailsDeterminator DDD = new DocumentDetailsDeterminator (DDDSyntaxList.getDefaultSyntaxList (),
-                                                                                          DDDValueProviderList.getDefaultValueProviderList ());
+  private static final DocumentDetailsDeterminator DDD;
+  static
+  {
+    DDD = new DocumentDetailsDeterminator (DDDSyntaxList.getDefaultSyntaxList (),
+                                           DDDValueProviderList.getDefaultValueProviderList ()).addDefaultUnwrappers ();
+  }
 
   private PhormDDD ()
   {}
 
   @Nullable
-  public static DocumentDetails findDocumentDetails (@NonNull final Element aRootElement)
+  public static DocumentDetails findDocumentDetails (@NonNull final Element aRootElement,
+                                                     @Nullable final Consumer <Element> aEffectiveElementConsumer)
   {
     // Static instance can be used
-    return DDD.findDocumentDetails (aRootElement);
+    return DDD.findDocumentDetails (aRootElement, aEffectiveElementConsumer);
   }
 }
