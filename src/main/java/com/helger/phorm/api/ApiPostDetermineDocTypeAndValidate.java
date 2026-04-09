@@ -117,6 +117,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
       return;
     }
+    final Document aBusinessDoc = PhormDDD.getBusinessDocument (aDoc);
 
     // Determine document details
     LOGGER.info (sLogPrefix + "Trying to determine document details");
@@ -155,7 +156,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
 
       // Perform validation
-      final ValidationResultList aValidationResultList = AppValidator.validate (aVES, aDoc, aDisplayLocale);
+      final ValidationResultList aValidationResultList = AppValidator.validate (aVES, aBusinessDoc, aDisplayLocale);
       aWrappedVRL.set (aValidationResultList);
 
       if (aValidationResultList.getOverallValidity ().isValid ())

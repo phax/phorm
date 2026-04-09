@@ -20,7 +20,9 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.helger.annotation.concurrent.Immutable;
 import com.helger.ddd.DDDVersion;
@@ -28,6 +30,7 @@ import com.helger.ddd.DocumentDetails;
 import com.helger.ddd.DocumentDetailsDeterminator;
 import com.helger.ddd.model.DDDSyntaxList;
 import com.helger.ddd.model.DDDValueProviderList;
+import com.helger.xml.XMLFactory;
 
 /**
  * The utility class to configure and access DDD
@@ -38,6 +41,9 @@ import com.helger.ddd.model.DDDValueProviderList;
 public final class PhormDDD
 {
   private static final Logger LOGGER = LoggerFactory.getLogger (PhormDDD.class);
+  private static final String NS_SBDH = "http://www.unece.org/cefact/namespaces/StandardBusinessDocumentHeader";
+  private static final String ELEMENT_STANDARD_BUSINESS_DOCUMENT = "StandardBusinessDocument";
+  private static final String ELEMENT_STANDARD_BUSINESS_DOCUMENT_HEADER = "StandardBusinessDocumentHeader";
 
   static
   {
@@ -52,9 +58,44 @@ public final class PhormDDD
   {}
 
   @Nullable
+  public static Element findBusinessDocumentElement (@NonNull final Element aRootElement)
+  {
+    if (NS_SBDH.equals (aRootElement.getNamespaceURI ()) &&
+        ELEMENT_STANDARD_BUSINESS_DOCUMENT.equals (aRootElement.getLocalName ()))
+    {
+      for (Node aChild = aRootElement.getFirstChild (); aChild != null; aChild = aChild.getNextSibling ())
+        if (aChild.getNodeType () == Node.ELEMENT_NODE)
+        {
+          final Element aChildElement = (Element) aChild;
+          if (!(NS_SBDH.equals (aChildElement.getNamespaceURI ()) &&
+                ELEMENT_STANDARD_BUSINESS_DOCUMENT_HEADER.equals (aChildElement.getLocalName ())))
+            return aChildElement;
+        }
+      return null;
+    }
+    return aRootElement;
+  }
+
+  @NonNull
+  public static Document getBusinessDocument (@NonNull final Document aDoc)
+  {
+    final Element aBusinessElement = findBusinessDocumentElement (aDoc.getDocumentElement ());
+    if (aBusinessElement == null || aBusinessElement == aDoc.getDocumentElement ())
+      return aDoc;
+
+    final Document aBusinessDoc = XMLFactory.newDocument ();
+    aBusinessDoc.appendChild (aBusinessDoc.importNode (aBusinessElement, true));
+    return aBusinessDoc;
+  }
+
+  @Nullable
   public static DocumentDetails findDocumentDetails (@NonNull final Element aRootElement)
   {
+    final Element aBusinessElement = findBusinessDocumentElement (aRootElement);
+    if (aBusinessElement == null)
+      return null;
+
     // Static instance can be used
-    return DDD.findDocumentDetails (aRootElement);
+    return DDD.findDocumentDetails (aBusinessElement);
   }
 }
