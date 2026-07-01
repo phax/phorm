@@ -25,13 +25,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.unece.cefact.namespaces.sbdh.StandardBusinessDocument;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.helger.annotation.Nonempty;
 import com.helger.base.io.stream.StreamHelper;
+import com.helger.base.numeric.mutable.MutableBoolean;
 import com.helger.base.wrapper.Wrapper;
 import com.helger.ddd.DocumentDetails;
+import com.helger.ddd.IDDDDocumentUnwrappingCallback;
+import com.helger.ddd.unwrap.DDDDocumentUnwrapperSBDH;
+import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.http.CHttp;
 import com.helger.http.header.specific.AcceptMimeTypeList;
@@ -40,6 +45,8 @@ import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.mime.CMimeType;
+import com.helger.peppol.sbdh.PeppolSBDHDataReader;
+import com.helger.peppolid.factory.PeppolIdentifierFactory;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
 import com.helger.phive.api.result.ValidationResultList;
 import com.helger.phive.result.html.PhiveHtmlHelper;
@@ -56,6 +63,7 @@ import com.helger.phorm.telemetry.PhormMetrics;
 import com.helger.phorm.validation.AppValidator;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
+import com.helger.sbdh.SBDMarshaller;
 import com.helger.schematron.svrl.SVRLResourceError;
 import com.helger.servlet.request.RequestHelper;
 import com.helger.telemetry.ETelemetrySpanKind;
@@ -147,7 +155,28 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
     // Determine document details
     LOGGER.info (sLogPrefix + "Trying to determine document details");
     final Wrapper <Element> aInnerElement = Wrapper.empty ();
-    final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement (), aInnerElement::set);
+    final MutableBoolean aPeppolSbdhValidated = new MutableBoolean (false);
+    final ErrorList aPeppolSbdhErrorList = new ErrorList ();
+    final IDDDDocumentUnwrappingCallback aUnwrappingCallback = (aUnwrapper, aOuterElement, aInnerElement1) -> {
+      // Was it an SBD?
+      if (DDDDocumentUnwrapperSBDH.WRAPPING_TYPE.equals (aUnwrapper.getWrappingType ()))
+      {
+        // Parse as SBD
+        final StandardBusinessDocument aSBD = new SBDMarshaller ().read (aOuterElement);
+        if (aSBD != null)
+        {
+          // Validate as Peppol SBDH
+          aPeppolSbdhValidated.set (true);
+          new PeppolSBDHDataReader (PeppolIdentifierFactory.INSTANCE).validateData (aSBD.getStandardBusinessDocumentHeader (),
+                                                                                    aInnerElement1,
+                                                                                    aPeppolSbdhErrorList);
+        }
+      }
+    };
+
+    final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement (),
+                                                              aUnwrappingCallback,
+                                                              aInnerElement::set);
     if (aDD == null || !aDD.hasVESID ())
     {
       final String sErrorMsg = "Failed to determine the document type details";
@@ -196,7 +225,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
     final Locale aDisplayLocale = CApp.DEFAULT_LOCALE;
     final Wrapper <ValidationResultList> aWrappedVRL = Wrapper.empty ();
 
-    final Runnable aRunnable = () -> {
+    final Runnable aValidationRunnable = () -> {
       // validation
       LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
 
@@ -237,7 +266,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       final IMicroElement aResultXMLRoot = aResultXML.addElement ("validationResults");
       aDD.appendToMicroElement (aResultXMLRoot);
 
-      CommonAPIInvoker.invoke (aResultXMLRoot, aRunnable::run);
+      CommonAPIInvoker.invoke (aResultXMLRoot, aValidationRunnable::run);
 
       // Perform conversion
       new XMLValidationResultListHelper ().ves (aVES)
@@ -257,7 +286,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       if (aAcceptMimeTypes.explicitlySupportsMimeType (CMimeType.TEXT_HTML))
       {
         // Provide response as HTML
-        aRunnable.run ();
+        aValidationRunnable.run ();
 
         // Perform conversion
         final String sResultHtml = new PhiveHtmlHelper (aDisplayLocale).useDefaultCSS ()
@@ -283,7 +312,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
         final IJsonObject aResultJson = new JsonObject ();
         aResultJson.add ("documentDetails", aDD.getAsJson ());
 
-        CommonAPIInvoker.invoke (aResultJson, aRunnable::run);
+        CommonAPIInvoker.invoke (aResultJson, aValidationRunnable::run);
 
         // Perform conversion
         new JsonValidationResultListHelper ().ves (aVES)

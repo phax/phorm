@@ -178,7 +178,7 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
     final Wrapper <IValidationExecutorSet <IValidationSourceXML>> aWrappedVES = Wrapper.empty ();
     final Wrapper <DocumentDetails> aWrappedDD = Wrapper.empty ();
 
-    final Runnable aRunnable = () -> {
+    final Runnable aValidationRunnable = () -> {
       final HybridLimits aHybridLimits = HybridLimits.DEFAULTS;
 
       // 1) Run hybrid PDF carrier validation
@@ -303,7 +303,9 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
         {
           // Run DDD
           final Wrapper <Element> aInnerElement = Wrapper.empty ();
-          final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement (), aInnerElement::set);
+          final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement (),
+                                                                    null,
+                                                                    aInnerElement::set);
           if (aDD == null || !aDD.hasVESID ())
           {
             LOGGER.warn (sLogPrefix + "Failed to determine document details for the embedded XML");
@@ -378,7 +380,7 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
       if (eCountry != null)
         aResultXMLRoot.addElement ("country").addText (eCountry.name ());
 
-      CommonAPIInvoker.invoke (aResultXMLRoot, aRunnable::run);
+      CommonAPIInvoker.invoke (aResultXMLRoot, aValidationRunnable::run);
 
       if (aWrappedDD.isSet ())
         aWrappedDD.get ().appendToMicroElement (aResultXMLRoot);
@@ -401,7 +403,7 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
       if (aAcceptMimeTypes.explicitlySupportsMimeType (CMimeType.TEXT_HTML))
       {
         // Provide response as HTML
-        aRunnable.run ();
+        aValidationRunnable.run ();
 
         // Perform conversion
         final String sResultHtml = new PhiveHtmlHelper (aDisplayLocale).useDefaultCSS ()
@@ -426,7 +428,7 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
         if (eCountry != null)
           aResultJson.add ("country", eCountry.name ());
 
-        CommonAPIInvoker.invoke (aResultJson, aRunnable::run);
+        CommonAPIInvoker.invoke (aResultJson, aValidationRunnable::run);
 
         if (aWrappedDD.isSet ())
           aResultJson.add ("documentDetails", aWrappedDD.get ().getAsJson ());

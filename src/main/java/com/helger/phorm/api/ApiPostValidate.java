@@ -44,6 +44,7 @@ import com.helger.phive.result.html.PhiveHtmlHelper;
 import com.helger.phive.result.json.JsonValidationResultListHelper;
 import com.helger.phive.result.xml.XMLValidationResultListHelper;
 import com.helger.phive.xml.source.IValidationSourceXML;
+import com.helger.phive.xml.source.ValidationSourceXML;
 import com.helger.phorm.AppConfig;
 import com.helger.phorm.AppVersion;
 import com.helger.phorm.CApp;
@@ -180,12 +181,16 @@ public class ApiPostValidate extends AbstractAPIInvoker
     final Locale aDisplayLocale = CApp.DEFAULT_LOCALE;
     final Wrapper <ValidationResultList> aWrappedVRL = Wrapper.empty ();
 
-    final Runnable aRunnable = () -> {
+    final Runnable aValidationRunnable = () -> {
       // validation
       LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
 
       // Perform validation
-      final ValidationResultList aValidationResultList = AppValidator.validate (aVES, aDoc, aDisplayLocale, "direct");
+      final IValidationSourceXML aValSrc = ValidationSourceXML.create (null, aDoc);
+      final ValidationResultList aValidationResultList = AppValidator.validate (aVES,
+                                                                                aValSrc,
+                                                                                aDisplayLocale,
+                                                                                "direct");
       aWrappedVRL.set (aValidationResultList);
 
       if (aValidationResultList.getOverallValidity ().isValid ())
@@ -220,7 +225,7 @@ public class ApiPostValidate extends AbstractAPIInvoker
       final IMicroDocument aResultXML = new MicroDocument ();
       final IMicroElement aResultXMLRoot = aResultXML.addElement ("validationResults");
 
-      CommonAPIInvoker.invoke (aResultXMLRoot, aRunnable::run);
+      CommonAPIInvoker.invoke (aResultXMLRoot, aValidationRunnable::run);
 
       // Perform conversion
       new XMLValidationResultListHelper ().ves (aVES)
@@ -240,7 +245,7 @@ public class ApiPostValidate extends AbstractAPIInvoker
       if (aAcceptMimeTypes.explicitlySupportsMimeType (CMimeType.TEXT_HTML))
       {
         // Provide response as HTML
-        aRunnable.run ();
+        aValidationRunnable.run ();
 
         // Perform conversion
         final String sResultHtml = new PhiveHtmlHelper (aDisplayLocale).useDefaultCSS ()
@@ -264,7 +269,7 @@ public class ApiPostValidate extends AbstractAPIInvoker
       {
         // Provide response as JSON
         final IJsonObject aResultJson = new JsonObject ();
-        CommonAPIInvoker.invoke (aResultJson, aRunnable::run);
+        CommonAPIInvoker.invoke (aResultJson, aValidationRunnable::run);
 
         // Perform conversion
         new JsonValidationResultListHelper ().ves (aVES)

@@ -29,7 +29,6 @@ import com.helger.base.numeric.mutable.MutableBoolean;
 import com.helger.ddd.DDDVersion;
 import com.helger.ddd.DocumentDetails;
 import com.helger.ddd.DocumentDetailsDeterminator;
-import com.helger.ddd.IDDDDocumentUnwrapper;
 import com.helger.ddd.IDDDDocumentUnwrappingCallback;
 import com.helger.ddd.model.DDDSyntaxList;
 import com.helger.ddd.model.DDDValueProviderList;
@@ -67,6 +66,7 @@ public final class PhormDDD
 
   @Nullable
   public static DocumentDetails findDocumentDetails (@NonNull final Element aRootElement,
+                                                     @Nullable final IDDDDocumentUnwrappingCallback aUnwrappingCallback,
                                                      @Nullable final Consumer <Element> aEffectiveElementConsumer)
   {
     return Telemetry.withSpan (CPhormTelemetry.SPAN_DDD_DETERMINE, ETelemetrySpanKind.INTERNAL, aSpan -> {
@@ -74,21 +74,18 @@ public final class PhormDDD
            .setAttribute (CPhormTelemetry.ATTR_XML_ROOT_NAMESPACE, aRootElement.getNamespaceURI ());
 
       final MutableBoolean aWasUnwrapped = new MutableBoolean (false);
-      final IDDDDocumentUnwrappingCallback aUnwrappingCallback = (@NonNull final IDDDDocumentUnwrapper aUnwrapper,
-                                                                  @NonNull final Element aOuterElement,
-                                                                  @NonNull final Element aInnerElement) -> {
+      final IDDDDocumentUnwrappingCallback aEffectiveUnwrappingCallback = (aUnwrapper,
+                                                                           aOuterElement,
+                                                                           aInnerElement) -> {
         // Remember that it was unwrapped
         aWasUnwrapped.set (true);
 
-        // Was it an SBD?
-        // if (DDDDocumentUnwrapperSBDH.WRAPPING_TYPE.equals (aUnwrapper.getWrappingType ()))
-        // {
-        // // Parse as SBD
-        // final StandardBusinessDocument aSBD = new SBDMarshaller ().read (aOuterElement);
-        // }
+        // Call parameter callback (if any)
+        if (aUnwrappingCallback != null)
+          aUnwrappingCallback.onUnwrap (aUnwrapper, aOuterElement, aInnerElement);
       };
       final DocumentDetails aDD = DDD.findDocumentDetails (aRootElement,
-                                                           aUnwrappingCallback,
+                                                           aEffectiveUnwrappingCallback,
                                                            aEffectiveElementConsumer);
 
       final boolean bMatched = aDD != null;

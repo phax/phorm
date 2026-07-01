@@ -21,7 +21,6 @@ import java.util.Locale;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.w3c.dom.Node;
 
 import com.helger.collection.commons.ICommonsList;
 import com.helger.diver.api.coord.DVRCoordinate;
@@ -30,11 +29,6 @@ import com.helger.phive.api.executorset.IValidationExecutorSet;
 import com.helger.phive.api.executorset.ValidationExecutorSetRegistry;
 import com.helger.phive.api.result.ValidationResultList;
 import com.helger.phive.api.validity.IValidityDeterminator;
-import com.helger.phorm.telemetry.CPhormTelemetry;
-import com.helger.phorm.telemetry.PhormMetrics;
-import com.helger.telemetry.ETelemetrySpanKind;
-import com.helger.telemetry.Telemetry;
-import com.helger.telemetry.TelemetryAttributes;
 import com.helger.phive.cii.CIIValidation;
 import com.helger.phive.ciuspt.CIUS_PTValidation;
 import com.helger.phive.ciusro.CIUS_ROValidation;
@@ -60,10 +54,14 @@ import com.helger.phive.turkey.TurkeyEFaturaValidation;
 import com.helger.phive.ubl.UBLValidation;
 import com.helger.phive.ublbe.UBLBEValidation;
 import com.helger.phive.xml.source.IValidationSourceXML;
-import com.helger.phive.xml.source.ValidationSourceXML;
 import com.helger.phive.xrechnung.XRechnungValidation;
 import com.helger.phive.zatca.ZATCAValidation;
 import com.helger.phive.zugferd.ZugferdValidation;
+import com.helger.phorm.telemetry.CPhormTelemetry;
+import com.helger.phorm.telemetry.PhormMetrics;
+import com.helger.telemetry.ETelemetrySpanKind;
+import com.helger.telemetry.Telemetry;
+import com.helger.telemetry.TelemetryAttributes;
 
 /**
  * Default validation repository
@@ -148,15 +146,6 @@ public class AppValidator
     if (aVES == null)
       throw new IllegalStateException ("Unexpected VESID " + aVESID.getAsSingleID ());
     return aVES;
-  }
-
-  @NonNull
-  public static ValidationResultList validate (@NonNull final IValidationExecutorSet <IValidationSourceXML> aVES,
-                                               @NonNull final Node aXmlNode,
-                                               @NonNull final Locale aDisplayLocale,
-                                               @NonNull final String sVia)
-  {
-    return validate (aVES, ValidationSourceXML.create (null, aXmlNode), aDisplayLocale, sVia);
   }
 
   @NonNull

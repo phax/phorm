@@ -124,7 +124,7 @@ public final class ApiPostDetermineDocDetails extends AbstractAPIInvoker
     }
 
     LOGGER.info (sLogPrefix + "Trying to determine payload type");
-    final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement (), null);
+    final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement (), null, null);
     if (aDD == null)
     {
       final String sErrorMsg = "Failed to determine the document types";
