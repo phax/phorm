@@ -55,6 +55,7 @@ import com.helger.peppol.sbdh.PeppolSBDHDataReader;
 import com.helger.peppolid.IDocumentTypeIdentifier;
 import com.helger.peppolid.IParticipantIdentifier;
 import com.helger.peppolid.factory.PeppolIdentifierFactory;
+import com.helger.peppolid.peppol.PeppolIdentifierHelper;
 import com.helger.peppolid.peppol.doctype.EPredefinedDocumentTypeIdentifier;
 import com.helger.phive.api.EValidationBaseType;
 import com.helger.phive.api.ValidationType;
@@ -126,10 +127,19 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
 
     // Peppol BIS Billing
     // Peppol BIS Self-Billing
-    return EPredefinedDocumentTypeIdentifier.INVOICE_EN16931_PEPPOL_V30.hasSameContent (aDocumentTypeID) ||
-           EPredefinedDocumentTypeIdentifier.CREDITNOTE_EN16931_PEPPOL_V30.hasSameContent (aDocumentTypeID) ||
-           EPredefinedDocumentTypeIdentifier.INVOICE_CEN_EU_EN16931_2017_COMPLIANT_FDC_PEPPOL_EU_2017_POACC_SELFBILLING_3_0.hasSameContent (aDocumentTypeID) ||
-           EPredefinedDocumentTypeIdentifier.CREDITNOTE_CEN_EU_EN16931_2017_COMPLIANT_FDC_PEPPOL_EU_2017_POACC_SELFBILLING_3_0.hasSameContent (aDocumentTypeID);
+    if (EPredefinedDocumentTypeIdentifier.INVOICE_EN16931_PEPPOL_V30.hasSameContent (aDocumentTypeID) ||
+        EPredefinedDocumentTypeIdentifier.CREDITNOTE_EN16931_PEPPOL_V30.hasSameContent (aDocumentTypeID) ||
+        EPredefinedDocumentTypeIdentifier.INVOICE_CEN_EU_EN16931_2017_COMPLIANT_FDC_PEPPOL_EU_2017_POACC_SELFBILLING_3_0.hasSameContent (aDocumentTypeID) ||
+        EPredefinedDocumentTypeIdentifier.CREDITNOTE_CEN_EU_EN16931_2017_COMPLIANT_FDC_PEPPOL_EU_2017_POACC_SELFBILLING_3_0.hasSameContent (aDocumentTypeID))
+      return true;
+
+    // Any Peppol PINT
+    if (PeppolIdentifierHelper.DOCUMENT_TYPE_SCHEME_PEPPOL_DOCTYPE_WILDCARD.equals (aDocumentTypeID.getScheme ()) &&
+        aDocumentTypeID.getValue ().contains (PeppolIdentifierHelper.PEPPOL_PINT_INDICATOR))
+      return true;
+
+    // Some other document
+    return false;
   }
 
   @Override
