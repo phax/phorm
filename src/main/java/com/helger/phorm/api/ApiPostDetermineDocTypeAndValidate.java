@@ -18,6 +18,7 @@ package com.helger.phorm.api;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,6 +33,7 @@ import org.w3c.dom.Element;
 import com.helger.annotation.Nonempty;
 import com.helger.base.io.stream.StreamHelper;
 import com.helger.base.numeric.mutable.MutableBoolean;
+import com.helger.base.timing.StopWatch;
 import com.helger.base.wrapper.Wrapper;
 import com.helger.ddd.DocumentDetails;
 import com.helger.ddd.IDDDDocumentUnwrappingCallback;
@@ -40,6 +42,7 @@ import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.http.CHttp;
 import com.helger.http.header.specific.AcceptMimeTypeList;
+import com.helger.io.resource.ClassPathResource;
 import com.helger.json.IJsonObject;
 import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
@@ -47,8 +50,14 @@ import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.mime.CMimeType;
 import com.helger.peppol.sbdh.PeppolSBDHDataReader;
 import com.helger.peppolid.factory.PeppolIdentifierFactory;
+import com.helger.phive.api.EValidationBaseType;
+import com.helger.phive.api.ValidationType;
+import com.helger.phive.api.artefact.IValidationArtefact;
+import com.helger.phive.api.artefact.ValidationArtefact;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
+import com.helger.phive.api.result.ValidationResult;
 import com.helger.phive.api.result.ValidationResultList;
+import com.helger.phive.api.validity.EExtendedValidity;
 import com.helger.phive.result.html.PhiveHtmlHelper;
 import com.helger.phive.result.json.JsonValidationResultListHelper;
 import com.helger.phive.result.xml.XMLValidationResultListHelper;
@@ -87,6 +96,15 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
 {
   private static final Logger LOGGER = LoggerFactory.getLogger (ApiPostDetermineDocTypeAndValidate.class);
   private static final AtomicInteger COUNTER = new AtomicInteger (0);
+
+  // Validation artefact representing the Peppol SBDH (envelope) validation layer that is performed
+  // in Java code (not phive rule based) while unwrapping the document.
+  private static final IValidationArtefact ARTEFACT_PEPPOL_SBDH = new ValidationArtefact (new ValidationType ("peppol-sbdh",
+                                                                                                              EValidationBaseType.OTHER,
+                                                                                                              "Peppol SBDH",
+                                                                                                              false,
+                                                                                                              false),
+                                                                                          new ClassPathResource ("peppol-sbdh/PeppolSBDHDataReader"));
 
   @Override
   @NonNull
@@ -155,22 +173,30 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
     // Determine document details
     LOGGER.info (sLogPrefix + "Trying to determine document details");
     final Wrapper <Element> aInnerElement = Wrapper.empty ();
-    final MutableBoolean aPeppolSbdhValidated = new MutableBoolean (false);
-    final ErrorList aPeppolSbdhErrorList = new ErrorList ();
+    final MutableBoolean aSbdhValidated = new MutableBoolean (false);
+    final Wrapper <Duration> aSbdhValidationDuration = Wrapper.of (Duration.ZERO);
+    final ErrorList aSbdhErrorList = new ErrorList ();
     final IDDDDocumentUnwrappingCallback aUnwrappingCallback = (aUnwrapper, aOuterElement, aInnerElement1) -> {
       // Was it an SBD?
       if (DDDDocumentUnwrapperSBDH.WRAPPING_TYPE.equals (aUnwrapper.getWrappingType ()))
       {
-        // Parse as SBD
-        final StandardBusinessDocument aSBD = new SBDMarshaller ().read (aOuterElement);
+        // Assume it is a Peppol SBDH
+        aSbdhValidated.set (true);
+
+        final StopWatch aSW = StopWatch.createdStarted ();
+
+        // Parse as SBD and remember errors
+        final StandardBusinessDocument aSBD = new SBDMarshaller ().setCollectErrors (aSbdhErrorList)
+                                                                  .read (aOuterElement);
         if (aSBD != null)
         {
           // Validate as Peppol SBDH
-          aPeppolSbdhValidated.set (true);
           new PeppolSBDHDataReader (PeppolIdentifierFactory.INSTANCE).validateData (aSBD.getStandardBusinessDocumentHeader (),
                                                                                     aInnerElement1,
-                                                                                    aPeppolSbdhErrorList);
+                                                                                    aSbdhErrorList);
         }
+        aSW.stop ();
+        aSbdhValidationDuration.set (aSW.getDuration ());
       }
     };
 
@@ -229,8 +255,27 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       // validation
       LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
 
-      // Perform validation
+      // Perform main validation
       final ValidationResultList aValidationResultList = AppValidator.validate (aVES, aValSrc, aDisplayLocale, "dd");
+
+      // If the payload was wrapped in a Peppol SBDH, the SBDH was validated during unwrapping.
+      // Include those results as the first (envelope) validation layer.
+      if (aSbdhValidated.booleanValue ())
+      {
+        final EExtendedValidity eSbdhValidity = aSbdhErrorList.containsAtLeastOneError () ? EExtendedValidity.INVALID
+                                                                                          : EExtendedValidity.VALID;
+        aValidationResultList.addAt (0,
+                                     new ValidationResult (ARTEFACT_PEPPOL_SBDH,
+                                                           aSbdhErrorList,
+                                                           eSbdhValidity,
+                                                           aSbdhValidationDuration.get ().toMillis ()));
+
+        // Increase overall validation duration
+        if (aValidationResultList.getValidationDuration () != null)
+          aValidationResultList.setValidationDuration (aValidationResultList.getValidationDuration ()
+                                                                            .plus (aSbdhValidationDuration.get ()));
+      }
+
       aWrappedVRL.set (aValidationResultList);
 
       if (aValidationResultList.getOverallValidity ().isValid ())
