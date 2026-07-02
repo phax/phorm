@@ -62,18 +62,20 @@ The services offers the following APIs.
 ```
 * POST **`/api/dd_and_validate`**
   * Determine the document type and afterwards validate the provided payload in the body against the determined validation rules
+    If the payload is wrapped in an SBDH or XHE, the payload document is automatically unwrapped.
+    Peppol SBDH constraints are automatically validated (since 2.1.5). 
   * Requires the HTTP header `X-Token` to have the configured value (see below for `phorm.api.requiredtoken`)
   * If the HTTP Request Header `Accept` with value `application/xml` is present, the result is an XML structure.
     If the HTTP Request Header `Accept` with value `text/html` is present, the result is an HTML file.
-    Else the result is a JSON structure
+    Else the result is a JSON structure.
   * Test invocation (replace `XXX` with real token):
     * `curl -X POST -H "Content-Type: application/xml" -H "X-Token: XXX" -d @src/test/resources/testfiles/peppol-bis3/base-example.xml http://localhost:8080/api/dd_and_validate/`
 * POST **`/api/hybrid_validate`**
   * Validate a ZUGFeRD / Factur-X hybrid PDF invoice. The PDF must be the POST body. The carrier-side rules
     (BR-HYBRID-* business rules and PDF/A-3 conformance via veraPDF) are evaluated by [kaltblut](https://github.com/phax/kaltblut),
     then the embedded XML is extracted, its document type auto-determined (as in `/api/dd_and_validate`), and
-    its XML business rules applied. All layers are returned in a single phive `ValidationResultList`, with the
-    PDF carrier layers first.
+    its XML business rules applied.
+    All layers are returned in a single phive `ValidationResultList`, with the PDF carrier layers first.
   * Requires the HTTP header `X-Token` to have the configured value (see below for `phorm.api.requiredtoken`)
   * Optional URL query parameter `country=DE|FR|OTHER` drives the country-specific BR-HYBRID rules
     (BR-HYBRID-DE-*, BR-HYBRID-FR-*, BR-FX-DE-03 PDF/A downgrade). Defaults to `OTHER`.
@@ -123,7 +125,6 @@ OTEL_TRACES_EXPORTER="otlp"
 OTEL_METRICS_EXPORTER="otlp"
 OTEL_LOGS_EXPORTER="otlp"
 ```
-
 
 # Building
 
@@ -196,6 +197,9 @@ As an alternative to using `private-application.properties` you may also conside
    see https://github.com/phax/ph-commons/wiki/ph-config for details.
 
 # News and noteworthy
+
+* Added validation of Peppol SBDH constraints in `/api/dd_and_validate`
+* Added validation of Peppol BIS Billing and SBDH constraints in `/api/dd_and_validate`
 
 v2.1.4 - 2026-07-01
 * Added OpenTelemetry support
