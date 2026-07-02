@@ -193,56 +193,54 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
       if (eCountry != null)
         aHybridValidator.getSettings ().setCountry (eCountry);
 
-      final HybridValidationResult aHybridResult = Telemetry.withSpan (CPhormTelemetry.SPAN_KALTBLUT_VALIDATE,
-                                                                       ETelemetrySpanKind.INTERNAL,
-                                                                       aSpan -> {
-                                                                         aSpan.setAttribute (CPhormTelemetry.ATTR_PAYLOAD_SIZE_BYTES,
-                                                                                             aPayloadBytes.length);
-                                                                         if (eCountry != null)
-                                                                           aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_COUNTRY,
-                                                                                               eCountry.name ());
+      final var aHybridResult = Telemetry.withSpan (CPhormTelemetry.SPAN_KALTBLUT_VALIDATE,
+                                                    ETelemetrySpanKind.INTERNAL,
+                                                    aSpan -> {
+                                                      aSpan.setAttribute (CPhormTelemetry.ATTR_PAYLOAD_SIZE_BYTES,
+                                                                          aPayloadBytes.length);
+                                                      if (eCountry != null)
+                                                        aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_COUNTRY,
+                                                                            eCountry.name ());
 
-                                                                         try
-                                                                         {
-                                                                           final HybridValidationResult aRes = aHybridValidator.validate (aHybridSource);
-                                                                           aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_LAYERS,
-                                                                                               aRes.getAllLayers ()
-                                                                                                   .size ());
-                                                                           PhormMetrics.KALTBLUT_RUNS.add (1,
-                                                                                                           TelemetryAttributes.builder ()
-                                                                                                                              .put ("outcome",
-                                                                                                                                    "ok")
-                                                                                                                              .put ("country",
-                                                                                                                                    eCountry !=
-                                                                                                                                               null ? eCountry.name ()
-                                                                                                                                                    : "none")
-                                                                                                                              .build ());
-                                                                           return aRes;
-                                                                         }
-                                                                         catch (final IOException ex)
-                                                                         {
-                                                                           PhormMetrics.KALTBLUT_RUNS.add (1,
-                                                                                                           TelemetryAttributes.builder ()
-                                                                                                                              .put ("outcome",
-                                                                                                                                    "parse_fail")
-                                                                                                                              .put ("country",
-                                                                                                                                    eCountry !=
-                                                                                                                                               null ? eCountry.name ()
-                                                                                                                                                    : "none")
-                                                                                                                              .build ());
-                                                                           /*
-                                                                            * Fatal: cannot proceed
-                                                                            * without parsing the
-                                                                            * PDF
-                                                                            */
-                                                                           LOGGER.error (sLogPrefix +
-                                                                                         "Failed to parse PDF for hybrid validation",
+                                                      try
+                                                      {
+                                                        final HybridValidationResult aRes = aHybridValidator.validate (aHybridSource);
+                                                        aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_LAYERS,
+                                                                            aRes.getAllLayers ().size ());
+                                                        PhormMetrics.KALTBLUT_RUNS.add (1,
+                                                                                        TelemetryAttributes.builder ()
+                                                                                                           .put ("outcome",
+                                                                                                                 "ok")
+                                                                                                           .put ("country",
+                                                                                                                 eCountry !=
+                                                                                                                            null ? eCountry.name ()
+                                                                                                                                 : "none")
+                                                                                                           .build ());
+                                                        return aRes;
+                                                      }
+                                                      catch (final IOException ex)
+                                                      {
+                                                        PhormMetrics.KALTBLUT_RUNS.add (1,
+                                                                                        TelemetryAttributes.builder ()
+                                                                                                           .put ("outcome",
+                                                                                                                 "parse_fail")
+                                                                                                           .put ("country",
+                                                                                                                 eCountry !=
+                                                                                                                            null ? eCountry.name ()
+                                                                                                                                 : "none")
+                                                                                                           .build ());
+                                                        /*
+                                                         * Fatal: cannot proceed without parsing the
+                                                         * PDF
+                                                         */
+                                                        LOGGER.error (sLogPrefix +
+                                                                      "Failed to parse PDF for hybrid validation",
+                                                                      ex);
+                                                        throw new IllegalStateException ("Failed to parse PDF for hybrid validation: " +
+                                                                                         ex.getMessage (),
                                                                                          ex);
-                                                                           throw new IllegalStateException ("Failed to parse PDF for hybrid validation: " +
-                                                                                                            ex.getMessage (),
-                                                                                                            ex);
-                                                                         }
-                                                                       });
+                                                      }
+                                                    });
 
       // Convert to our VRL
       final ValidationResultList aVRL = new ValidationResultList (ValidationSourceBinary.create (null, aPayloadBytes));
