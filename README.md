@@ -13,6 +13,184 @@ The implementation of the validation is based on the open source validation engi
 
 "Phorm" is a combination of "PH + form + conform" and is all about standards, compliance, and correctness.
 
+# Phorm in the Peppol flow
+
+Phorm is one service that is typically used at three different points of a Peppol exchange: while the mapping from
+  the backend format to UBL / CII is still being developed, at C2 immediately before a document is wrapped and
+  transmitted, and - optionally - at C3 when a document has been received.
+The validation engine and the rule sets are identical in all three cases, so a document that passes at design time
+  passes at run time for the same reason.
+
+![Phorm validating documents at three points of a Peppol exchange: the developer validates sample output of the ERP-to-UBL mapping, C2 validates each document before SBDH wrapping and AS4 transmission and rejects invalid ones back to C1, and C3 optionally validates a received document before handing it over to C4](https://raw.githubusercontent.com/phax/phorm/master/docs/phorm-peppol-flow.png)
+
+Solid lines are the mandatory / primary path; dashed lines are optional or feedback paths.
+The three `Phorm` boxes are the same service, called from three different places.
+The diagram source is [`docs/phorm-peppol-flow.mmd`](https://github.com/phax/phorm/blob/master/docs/phorm-peppol-flow.mmd),
+  a higher quality version for print and editing is [`docs/phorm-peppol-flow.svg`](https://github.com/phax/phorm/blob/master/docs/phorm-peppol-flow.svg).
+
+## ① Development time - mapping verification
+
+While the mapping from the backend format (ERP, accounting software) to UBL or CII is being written, every sample
+  document the mapping produces can be validated immediately.
+This is the fastest feedback loop available, because it needs no Access Point, no network and no deployment - just
+  an HTTP POST against a running Phorm instance.
+
+Phorm is accessible by API only; there is no interactive validation UI.
+Two endpoints are relevant here:
+* `POST /api/validate/{vesid}` - validate against a rule set that is named explicitly
+* `POST /api/dd_and_validate` - let Phorm determine the document type first and validate against the matching rule set
+
+Both deliver JSON by default, XML with the request header `Accept: application/xml` and HTML with the request header
+  `Accept: text/html` - the HTML variant is convenient to read the findings directly during development.
+Findings from this loop are corrected in the mapping, not in the transmitted document, which is why this touchpoint
+  feeds back into development and not into the message flow.
+
+## ② C2, before sending - the outbound gate
+
+At C2 the business document is validated after the mapping has produced it and before SBDH wrapping and AS4
+  transmission.
+This is the point where validation is worth the most: an invalid document is rejected back to C1 and never enters
+  the network at all, so the error is fixed where it originates instead of coming back later as a rejection from
+  the far side of the exchange.
+
+Two configuration properties make Phorm usable as a gate and not just as a reporting tool:
+* **`phorm.api.requiredtoken`** - the value the `X-Token` HTTP header must carry for any API call to be accepted
+* **`phorm.api.response.onfailure.http400`** - if `true` (the default), a failed validation is answered with HTTP 400
+  instead of HTTP 200, so the caller can use the HTTP status alone as the gate decision, without parsing the result
+  structure first
+
+If the document to be sent is already wrapped in an SBDH, `POST /api/dd_and_validate` unwraps it automatically and
+  validates the payload inside.
+
+## ③ C3, on receipt - optional inbound validation
+
+C3 can validate a document after AS4 reception and before handing it over to C4, so that the receiving side knows the
+  conformance status of what arrived.
+This touchpoint is optional - it is drawn with dashed lines for that reason - and Phorm only produces the validation
+  result; what the receiving side does with that result is up to the implementation.
+
+`POST /api/dd_and_validate` fits this position particularly well, because a document arriving over AS4 is SBDH wrapped:
+* the SBDH (or XHE) envelope is unwrapped automatically and the payload inside is validated
+* the Peppol SBDH envelope constraints are validated as well and returned as an additional first (envelope) validation
+  layer in the result (since v2.1.5)
+* if the SBDH is valid and the payload is a Peppol BIS Billing or PINT document, the SBDH sender and receiver
+  participant IDs are cross checked against the sender and receiver IDs in the payload
+
+All layers are returned in a single phive `ValidationResultList`, so envelope findings and business rule findings are
+  available from one call.
+
+## Rule set selection
+
+A validation always runs against one VESID - the coordinate of a validation executor set in the
+  [phive-rules](https://github.com/phax/phive-rules) registry.
+There are two ways of arriving at one.
+
+**Explicit**: `POST /api/validate/{vesid}` takes the VESID as part of the path, e.g. `eu.peppol.bis3:invoice:latest`.
+The caller decides which rules apply.
+`GET /api/get/vesids` returns all registered VESIDs.
+
+**Automatic**: `POST /api/determinedoctype`, `POST /api/dd_and_validate` and `POST /api/hybrid_validate` derive the
+  VESID from the document itself, using the [ddd](https://github.com/phax/ddd) library:
+1. **Syntax detection** - the syntax is determined from the root element namespace URI and the local element name
+   (e.g. the namespace `urn:oasis:names:specification:ubl:schema:xsd:Invoice-2` with the local name `Invoice` leads to
+   the syntax `ubl2-invoice`)
+2. **Field extraction** - each syntax carries a set of XPath expressions to read the generic document fields, among
+   them the Customization ID, the Process ID, the Business Document ID and the sender / receiver identifiers, names
+   and country codes
+3. **Value provider lookup** - the Customization ID selects the concrete profile of that syntax and delivers the VESID
+   (as well as the profile name, the syntax version and, for CII based syntaxes, the Process ID).
+   E.g. the Customization ID `urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0` on a UBL
+   Invoice identifies a Peppol BIS Billing UBL Invoice V3 and leads to the VESID `eu.peppol.bis3:invoice:latest-active`
+4. **Resolution** - the determined VESID is parsed and looked up in the registry, that is filled on startup from the
+   aggregating `phive-rules-all` module.
+   If no document details can be determined, or if the determined VESID cannot be parsed or resolved, the call is
+   answered with HTTP 400
+
+So in practice the document type identifier and the Customization ID contained in the document decide the rule set,
+  and neither C2 nor C3 needs to maintain a mapping table of its own.
+
+<details>
+<summary>Mermaid source of the diagram</summary>
+
+The image files are generated from [`docs/phorm-peppol-flow.mmd`](https://github.com/phax/phorm/blob/master/docs/phorm-peppol-flow.mmd) via:
+
+```
+npx --yes @mermaid-js/mermaid-cli -i docs/phorm-peppol-flow.mmd \
+    -o docs/phorm-peppol-flow.svg -b transparent
+npx --yes @mermaid-js/mermaid-cli -i docs/phorm-peppol-flow.mmd \
+    -o docs/phorm-peppol-flow.png -b white -s 3
+```
+
+```mermaid
+flowchart LR
+  %% ---------- development time ----------
+  subgraph SDEV["Development time"]
+    direction TB
+    DEV["Integration developer"]
+    SAMPLE["Sample documents<br/>from the mapping"]
+    DEV --> SAMPLE
+  end
+
+  PH1{{"<b>Phorm</b><br/>validation service"}}
+
+  SAMPLE -->|"① design time:<br/>validate mapping output<br/>(REST API)"| PH1
+  PH1 -.->|"findings feed back<br/>into the mapping"| DEV
+
+  %% ---------- the four corner model ----------
+  subgraph SC1["C1 — Sender"]
+    C1["Sending entity<br/>(ERP / accounting software)"]
+  end
+
+  subgraph SC2["C2 — Sending Access Point"]
+    direction TB
+    M2["Mapping to<br/>UBL / CII<br/>(Peppol BIS, CIUS)"]
+    S2["SBDH wrapping<br/>+ AS4 send"]
+  end
+
+  PH2{{"<b>Phorm</b><br/>validation service"}}
+
+  subgraph SC3["C3 — Receiving Access Point"]
+    direction TB
+    R3["AS4 receive<br/>+ SBDH unwrap"]
+    H3["Hand over to C4"]
+  end
+
+  PH3{{"<b>Phorm</b><br/>validation service"}}
+
+  subgraph SC4["C4 — Receiver"]
+    C4["Receiving entity<br/>(ERP / accounting software)"]
+  end
+
+  %% ---------- touchpoint 2: C2 outbound gate ----------
+  C1 --> M2
+  M2 -->|"② outbound gate:<br/>validate before sending"| PH2
+  PH2 -->|"valid → transmit"| S2
+  PH2 -.->|"invalid → reject to C1,<br/>nothing enters the network"| C1
+
+  %% ---------- transmission ----------
+  S2 -->|AS4| R3
+
+  %% ---------- touchpoint 3: C3 inbound, optional ----------
+  R3 -.->|"③ optional:<br/>validate on receipt"| PH3
+  PH3 -.->|"result available for<br/>C4 processing"| H3
+  H3 --> C4
+
+  classDef corner fill:#f5f7fa,stroke:#4a5568,stroke-width:1px,color:#1a202c
+  classDef devbox fill:#fdf6e3,stroke:#8a6d3b,stroke-width:1px,color:#1a202c
+  classDef service fill:#e6f2ff,stroke:#1f5fa9,stroke-width:2px,color:#0b2545
+  class C1,M2,S2,R3,H3,C4 corner
+  class DEV,SAMPLE devbox
+  class PH1,PH2,PH3 service
+
+  style SDEV fill:#fffaf0,stroke:#c8b48a,color:#1a202c
+  style SC1 fill:#ffffff,stroke:#a0aec0,color:#1a202c
+  style SC2 fill:#ffffff,stroke:#a0aec0,color:#1a202c
+  style SC3 fill:#ffffff,stroke:#a0aec0,color:#1a202c
+  style SC4 fill:#ffffff,stroke:#a0aec0,color:#1a202c
+```
+
+</details>
+
 # Development environment
 
 * Requires Java 17 or newer - Java 21 or later is recommended
@@ -261,6 +439,9 @@ As an alternative to using `private-application.properties` you may also conside
    see https://github.com/phax/ph-commons/wiki/ph-config for details.
 
 # News and noteworthy
+
+v2.2.7 - work in progress
+* Added the section "Phorm in the Peppol flow" with a diagram showing the three points where Phorm is used in a Peppol exchange
 
 v2.2.6 - 2026-08-23
 * Updated to phive-rules 4.5.4

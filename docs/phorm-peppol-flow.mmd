@@ -1,0 +1,65 @@
+flowchart LR
+  %% ---------- development time ----------
+  subgraph SDEV["Development time"]
+    direction TB
+    DEV["Integration developer"]
+    SAMPLE["Sample documents<br/>from the mapping"]
+    DEV --> SAMPLE
+  end
+
+  PH1{{"<b>Phorm</b><br/>validation service"}}
+
+  SAMPLE -->|"① design time:<br/>validate mapping output<br/>(REST API)"| PH1
+  PH1 -.->|"findings feed back<br/>into the mapping"| DEV
+
+  %% ---------- the four corner model ----------
+  subgraph SC1["C1 — Sender"]
+    C1["Sending entity<br/>(ERP / accounting software)"]
+  end
+
+  subgraph SC2["C2 — Sending Access Point"]
+    direction TB
+    M2["Mapping to<br/>UBL / CII<br/>(Peppol BIS, CIUS)"]
+    S2["SBDH wrapping<br/>+ AS4 send"]
+  end
+
+  PH2{{"<b>Phorm</b><br/>validation service"}}
+
+  subgraph SC3["C3 — Receiving Access Point"]
+    direction TB
+    R3["AS4 receive<br/>+ SBDH unwrap"]
+    H3["Hand over to C4"]
+  end
+
+  PH3{{"<b>Phorm</b><br/>validation service"}}
+
+  subgraph SC4["C4 — Receiver"]
+    C4["Receiving entity<br/>(ERP / accounting software)"]
+  end
+
+  %% ---------- touchpoint 2: C2 outbound gate ----------
+  C1 --> M2
+  M2 -->|"② outbound gate:<br/>validate before sending"| PH2
+  PH2 -->|"valid → transmit"| S2
+  PH2 -.->|"invalid → reject to C1,<br/>nothing enters the network"| C1
+
+  %% ---------- transmission ----------
+  S2 -->|AS4| R3
+
+  %% ---------- touchpoint 3: C3 inbound, optional ----------
+  R3 -.->|"③ optional:<br/>validate on receipt"| PH3
+  PH3 -.->|"result available for<br/>C4 processing"| H3
+  H3 --> C4
+
+  classDef corner fill:#f5f7fa,stroke:#4a5568,stroke-width:1px,color:#1a202c
+  classDef devbox fill:#fdf6e3,stroke:#8a6d3b,stroke-width:1px,color:#1a202c
+  classDef service fill:#e6f2ff,stroke:#1f5fa9,stroke-width:2px,color:#0b2545
+  class C1,M2,S2,R3,H3,C4 corner
+  class DEV,SAMPLE devbox
+  class PH1,PH2,PH3 service
+
+  style SDEV fill:#fffaf0,stroke:#c8b48a,color:#1a202c
+  style SC1 fill:#ffffff,stroke:#a0aec0,color:#1a202c
+  style SC2 fill:#ffffff,stroke:#a0aec0,color:#1a202c
+  style SC3 fill:#ffffff,stroke:#a0aec0,color:#1a202c
+  style SC4 fill:#ffffff,stroke:#a0aec0,color:#1a202c
