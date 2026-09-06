@@ -440,7 +440,8 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
-v2.2.7 - work in progress
+v2.2.7 - 2026-09-06
+* Updated to phive-rules 4.5.6
 * Added the section "Phorm in the Peppol flow" with a diagram showing the three points where Phorm is used in a Peppol exchange
 
 v2.2.6 - 2026-08-23

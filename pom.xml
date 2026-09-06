@@ -65,7 +65,7 @@
     <log4j.version>2.26.1</log4j.version>
     <opentelemetry.version>1.65.0</opentelemetry.version>
 
-    <phive-rules.version>4.5.5</phive-rules.version>
+    <phive-rules.version>4.5.6</phive-rules.version>
     <ph-telemetry.version>1.0.2</ph-telemetry.version>
   </properties>
 
@@ -130,7 +130,7 @@
       <dependency>
         <groupId>com.helger.peppol</groupId>
         <artifactId>peppol-commons-parent-pom</artifactId>
-        <version>12.9.0</version>
+        <version>12.10.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
