@@ -30,10 +30,10 @@ public final class PingPongServlet extends AbstractXServlet
   public PingPongServlet ()
   {
     handlerRegistry ().registerHandler (EHttpMethod.GET,
-                                        (aRequestScope,
-                                         aUnifiedResponse) -> aUnifiedResponse.setContentAndCharset ("pong",
-                                                                                                     StandardCharsets.ISO_8859_1)
-                                                                              .setMimeType (CMimeType.TEXT_PLAIN)
-                                                                              .disableCaching ());
+                                        (aRequestScope, aUnifiedResponse) -> aUnifiedResponse.setContentAndCharset (
+                                                                                                                    "pong",
+                                                                                                                    StandardCharsets.ISO_8859_1)
+                                                                                             .setMimeType (CMimeType.TEXT_PLAIN)
+                                                                                             .disableCaching ());
   }
 }

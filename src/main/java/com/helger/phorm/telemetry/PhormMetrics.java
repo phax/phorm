@@ -25,8 +25,8 @@ import com.helger.telemetry.TelemetryMetrics;
 
 /**
  * Static holder for all phorm telemetry instruments. Resolved once per JVM via the
- * {@link TelemetryMetrics} facade; if no meter SPI is on the classpath the underlying
- * instruments are cheap no-ops.
+ * {@link TelemetryMetrics} facade; if no meter SPI is on the classpath the underlying instruments
+ * are cheap no-ops.
  *
  * @author Philip Helger
  */
@@ -82,7 +82,8 @@ public final class PhormMetrics
   public static final ITelemetryGauge VES_REGISTRY_SIZE = TelemetryMetrics.gauge ("phorm.ves.registry.size",
                                                                                   "Number of registered validation executor sets",
                                                                                   "{ves}",
-                                                                                  () -> AppValidator.getAllVES ().size ());
+                                                                                  () -> AppValidator.getAllVES ()
+                                                                                                    .size ());
 
   private PhormMetrics ()
   {}

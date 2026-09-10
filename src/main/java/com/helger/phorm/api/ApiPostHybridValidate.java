@@ -212,9 +212,8 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
                                                                                                            .put ("outcome",
                                                                                                                  "ok")
                                                                                                            .put ("country",
-                                                                                                                 eCountry !=
-                                                                                                                            null ? eCountry.name ()
-                                                                                                                                 : "none")
+                                                                                                                 eCountry != null ? eCountry.name ()
+                                                                                                                                  : "none")
                                                                                                            .build ());
                                                         return aRes;
                                                       }
@@ -225,9 +224,8 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
                                                                                                            .put ("outcome",
                                                                                                                  "parse_fail")
                                                                                                            .put ("country",
-                                                                                                                 eCountry !=
-                                                                                                                            null ? eCountry.name ()
-                                                                                                                                 : "none")
+                                                                                                                 eCountry != null ? eCountry.name ()
+                                                                                                                                  : "none")
                                                                                                            .build ());
                                                         /*
                                                          * Fatal: cannot proceed without parsing the
@@ -266,9 +264,8 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
                                                           PhormMetrics.KALTBLUT_EMBEDDED_XML_BYTES.record (nLen,
                                                                                                            TelemetryAttributes.builder ()
                                                                                                                               .put ("country",
-                                                                                                                                    eCountry !=
-                                                                                                                                               null ? eCountry.name ()
-                                                                                                                                                    : "none")
+                                                                                                                                    eCountry != null ? eCountry.name ()
+                                                                                                                                                     : "none")
                                                                                                                               .build ());
                                                         }
                                                         return aBytes;

@@ -48,7 +48,7 @@ public class MainRunValidationMultiple
       final StopWatch aSW = StopWatch.createdStarted ();
       final int nCount = 10_000;
       for (int i = 0; i < nCount; ++i)
-        aES.submit ( () -> {
+        aES.submit (() -> {
           final HttpPost aPost = new HttpPost ("http://localhost:8080/api/validate/eu.peppol.bis3:invoice:latest");
           aPost.setEntity (new ByteArrayEntity (aPayload, ContentType.APPLICATION_XML));
           aPost.addHeader ("X-Token", "4phorm-dev-token");
