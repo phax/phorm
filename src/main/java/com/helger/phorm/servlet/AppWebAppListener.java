@@ -52,6 +52,7 @@ import com.helger.photon.security.mgr.PhotonSecurityManager.FactoryXML;
 import com.helger.scope.singleton.SingletonHelper;
 import com.helger.xservlet.requesttrack.RequestTrackerSettings;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import jakarta.servlet.ServletContext;
@@ -134,18 +135,40 @@ public final class AppWebAppListener extends WebAppListener
     if (StringHelper.isEmpty (AppConfig.getAPIRequiredToken ()))
       throw new InitializationException ("The configuration property 'phorm.api.requiredtoken' is not set or empty. This is a required configuration.");
 
-    // OpenTelemetry SDK init. Without this, GlobalOpenTelemetry.get() returns the OTel no-op
-    // and every Telemetry.* call is a cheap no-op all the way down.
+    // OpenTelemetry SDK init. Without this, no OpenTelemetry instance is registered globally and
+    // every Telemetry.* call is a cheap no-op all the way down.
     if (AppConfig.isTelemetryEnabled ())
     {
       LOGGER.info ("Initialising OpenTelemetry SDK via autoconfigure");
-      // We manage shutdown ourselves in beforeContextDestroyed
-      s_aOtelSdk = AutoConfiguredOpenTelemetrySdk.builder ()
-                                                 .setResultAsGlobal ()
-                                                 .disableShutdownHook ()
-                                                 .build ()
-                                                 .getOpenTelemetrySdk ();
-      // Touch the metrics holder so the observable gauge gets registered with the SdkMeterProvider
+      // Deliberately built without "setResultAsGlobal ()" and registered in a separate step below.
+      // That method registers from inside "build ()" and throws if a global instance is already
+      // present - realistically when this application runs with the OpenTelemetry Java agent -
+      // which would abort the startup and leak the SDK that was just built, because the exception
+      // leaves no handle to close it. Shutdown is ours in beforeContextDestroyed, hence
+      // "disableShutdownHook ()".
+      final OpenTelemetrySdk aSdk = AutoConfiguredOpenTelemetrySdk.builder ()
+                                                                 .disableShutdownHook ()
+                                                                 .build ()
+                                                                 .getOpenTelemetrySdk ();
+      try
+      {
+        GlobalOpenTelemetry.set (aSdk);
+        // Only what we registered ourselves may be shut down by us later
+        s_aOtelSdk = aSdk;
+        LOGGER.info ("Successfully installed the OpenTelemetry SDK: " + aSdk.getClass ().getName ());
+      }
+      catch (final IllegalStateException ex)
+      {
+        LOGGER.warn ("An OpenTelemetry instance is already registered globally - keeping it and shutting down the SDK that was created here. " +
+                     "If this application runs with the OpenTelemetry Java agent, set 'phorm.telemetry.enabled=false' and let the agent do the instrumentation.",
+                     ex);
+        aSdk.close ();
+      }
+
+      // Touch the metrics holder so the observable gauge gets registered with the meter provider.
+      // This must stay AFTER the registration above: an instrument is bound to the meter it was
+      // created from, so an instrument created before a global instance exists stays a no-op for
+      // the lifetime of the JVM - that binding is not re-resolved later
       PhormMetrics.init ();
     }
     else
