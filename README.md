@@ -442,7 +442,7 @@ As an alternative to using `private-application.properties` you may also conside
 
 v2.2.9 - 2026-09-25
 * Updated to phive-rules 4.6.1
-* Updated to phive-rules-legacy 4.6.2
+* Updated to phive-rules-legacy 4.6.1
 * The OpenTelemetry SDK is no longer registered via `setResultAsGlobal ()`, but built first and registered in a separate, guarded step.
   `setResultAsGlobal ()` registers from inside `build ()` and throws if a global `OpenTelemetry` instance is already present - realistically when Phorm runs with the OpenTelemetry Java agent while `phorm.telemetry.enabled` is still `true`. That aborted the startup with an opaque `IllegalStateException: GlobalOpenTelemetry.set has already been called` and leaked the SDK that had just been built, because the exception leaves no handle to close it and Phorm disables the OpenTelemetry shutdown hook (it manages shutdown itself).
   Now such an instance is kept, the surplus SDK is shut down, and a warning names `phorm.telemetry.enabled=false` as the fix. The Phorm metrics then register against the already present instance, so running with the agent works instead of failing.
