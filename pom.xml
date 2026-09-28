@@ -65,7 +65,7 @@
     <log4j.version>2.26.1</log4j.version>
     <opentelemetry.version>1.66.0</opentelemetry.version>
 
-    <phive-rules.version>4.6.1</phive-rules.version>
+    <phive-rules.version>4.6.2</phive-rules.version>
     <phive-rules-legacy.version>4.6.1</phive-rules-legacy.version>
     <ph-telemetry.version>1.1.1</ph-telemetry.version>
   </properties>
@@ -124,14 +124,14 @@
       <dependency>
         <groupId>com.helger.schematron</groupId>
         <artifactId>ph-schematron-parent-pom</artifactId>
-        <version>10.1.0</version>
+        <version>10.2.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.peppol</groupId>
         <artifactId>peppol-commons-parent-pom</artifactId>
-        <version>13.0.0</version>
+        <version>13.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -145,7 +145,7 @@
       <dependency>
         <groupId>com.helger.phive</groupId>
         <artifactId>phive-parent-pom</artifactId>
-        <version>12.1.0</version>
+        <version>12.2.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -166,8 +166,10 @@
       </dependency>
       <dependency>
         <groupId>com.helger</groupId>
-        <artifactId>ddd</artifactId>
-        <version>0.8.10</version>
+        <artifactId>ddd-parent-pom</artifactId>
+        <version>0.9.0</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.kaltblut</groupId>
