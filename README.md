@@ -13,6 +13,9 @@ The implementation of the validation is based on the open source validation engi
 
 "Phorm" is a combination of "PH + form + conform" and is all about standards, compliance, and correctness.
 
+For calling the API from Java there is the separate client library
+  [phorm-client](https://github.com/phax/phorm-client) - see [Java client library](#java-client-library) below.
+
 # Phorm in the Peppol flow
 
 Phorm is one service that is typically used at three different points of a Peppol exchange: while the mapping from
@@ -311,6 +314,46 @@ The service offers the following REST APIs below `/api`.
 }
 ```
 
+# Java client library
+
+Calling the REST API from Java needs no hand written HTTP client.
+The separate project [phorm-client](https://github.com/phax/phorm-client) provides one:
+
+```xml
+<dependency>
+  <groupId>com.helger</groupId>
+  <artifactId>phorm-client</artifactId>
+  <version>x.y.z</version>
+</dependency>
+```
+
+```java
+try (final PhormClient aClient = PhormClient.builder ()
+                                            .baseURL ("http://localhost:8080")
+                                            .token ("phorm-dev-token")
+                                            .build ())
+{
+  final PhormValidationResult aResult = aClient.determineAndValidate (aXmlBytes);
+
+  System.out.println (aResult.getDocumentDetails ().getProfileName ());
+  System.out.println (aResult.isSuccess ());
+}
+```
+
+* Requires Java 17 or newer, like Phorm itself
+* Covers all five REST APIs listed above, in the JSON, XML and HTML representation
+* Returns the regular phive `ValidationResultList` and [ddd](https://github.com/phax/ddd) `DocumentDetails`
+  object models, and keeps the unparsed HTTP response reachable for everything the typed model does not cover
+* A content wise invalid document is a regular result and not an error, so the findings of an HTTP 400 answer
+  (see `phorm.api.response.onfailure.http400` below) are not lost. Only a problem that prevented the validation
+  from happening at all - a transport failure, a rejected `X-Token`, a payload that is not XML, an unresolvable
+  VESID - raises an exception, and it tells a faulty request, an unavailable service and an unusable answer apart
+* The payload may be passed as `byte []` or as `IHasInputStream`; the latter is streamed to Phorm, so a large
+  document is never held in memory as a whole
+
+See the [phorm-client README](https://github.com/phax/phorm-client/blob/main/README.md) for the full API
+  coverage and all configuration options.
+
 # Configuration
 
 Phorm comes with one configuration file called `application.properties`.
@@ -439,6 +482,9 @@ As an alternative to using `private-application.properties` you may also conside
    see https://github.com/phax/ph-commons/wiki/ph-config for details.
 
 # News and noteworthy
+
+v2.2.11 - work in progress
+* Added the section "Java client library" referencing the new [phorm-client](https://github.com/phax/phorm-client) project
 
 v2.2.10 - 2026-09-28
 * Updated to phive-rules 4.6.2
