@@ -147,9 +147,9 @@ public final class AppWebAppListener extends WebAppListener
       // leaves no handle to close it. Shutdown is ours in beforeContextDestroyed, hence
       // "disableShutdownHook ()".
       final OpenTelemetrySdk aSdk = AutoConfiguredOpenTelemetrySdk.builder ()
-                                                                 .disableShutdownHook ()
-                                                                 .build ()
-                                                                 .getOpenTelemetrySdk ();
+                                                                  .disableShutdownHook ()
+                                                                  .build ()
+                                                                  .getOpenTelemetrySdk ();
       try
       {
         GlobalOpenTelemetry.set (aSdk);
