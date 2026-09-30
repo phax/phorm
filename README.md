@@ -483,7 +483,8 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
-v2.2.11 - work in progress
+v2.2.11 - 2026-09-30
+* Updated to phive-rules 4.6.3
 * Added the section "Java client library" referencing the new [phorm-client](https://github.com/phax/phorm-client) project
 
 v2.2.10 - 2026-09-28
