@@ -63,7 +63,7 @@
   
   <properties>
     <log4j.version>2.26.1</log4j.version>
-    <opentelemetry.version>1.66.0</opentelemetry.version>
+    <opentelemetry.version>1.67.0</opentelemetry.version>
 
     <phive-rules.version>4.6.3</phive-rules.version>
     <phive-rules-legacy.version>4.6.1</phive-rules-legacy.version>
