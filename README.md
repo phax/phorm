@@ -483,6 +483,15 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.2.12 - work in progress
+* **Security: the Docker image now blocks the 16 compromised eMudhra intermediate CA certificates.**
+  The private keys of 8 eMudhra intermediate CAs were compromised, and each of them is also cross-signed by Sectigo's AAA Certificate Services, which is still trusted by the JDK.
+  The Java runtime does not check revocation by default, so outbound HTTPS connections relying on the JDK trust store could accept forged certificates.
+  The `Dockerfile` now appends the SHA-256 hashes of all 16 certificates to the JDK `blocked.certs` file.
+  The step is skipped if the base image already contains the entries.
+  Existing deployments must pull the new image, or add the hashes to the `blocked.certs` file of their own JDK.
+  See [phoss-ap #115](https://github.com/phax/phoss-ap/issues/115)
+
 v2.2.11 - 2026-09-30
 * Updated to phive-rules 4.6.3
 * Added the section "Java client library" referencing the new [phorm-client](https://github.com/phax/phorm-client) project
