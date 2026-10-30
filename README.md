@@ -491,6 +491,9 @@ v2.2.12 - work in progress
   The step is skipped if the base image already contains the entries.
   Existing deployments must pull the new image, or add the hashes to the `blocked.certs` file of their own JDK.
   See [phoss-ap #115](https://github.com/phax/phoss-ap/issues/115)
+* Updated to ph-schematron 10.3.0
+* Updated to phive-rules 4.6.4
+* Updated to ddd 0.9.3
 
 v2.2.11 - 2026-09-30
 * Updated to phive-rules 4.6.3
