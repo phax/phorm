@@ -41,9 +41,10 @@ docker run -d --name phorm -p 8080:8080 phelger/phorm
 - `ApiGetAllVESIDs` — GET `/api/get/vesids` — list all registered validation executor set IDs
 - `ApiPostDetermineDocDetails` — POST `/api/determinedoctype` — auto-detect document format
 - `ApiPostDetermineDocTypeAndValidate` — POST `/api/dd_and_validate` — detect + validate in one call
+- `ApiPostHybridValidate` — POST `/api/hybrid_validate` — validate a ZUGFeRD / Factur-X hybrid PDF: PDF carrier via kaltblut, then the embedded XML (optional `?country=DE|FR|OTHER`)
 
 ### Core Components
-- `AppValidator` (`validation/`) — static registry of all `ValidationExecutorSet` instances; loads all phive-rules at startup
+- `AppValidator` (`validation/`) — static registry of all `ValidationExecutorSet` instances; loads all phive-rules and phive-rules-legacy in a static initialiser on first use of the class, not in `AppWebAppListener`
 - `PhormDDD` (`ddd/`) — document details determination using the `ddd` library
 - `AppConfig` — typed access to `application.properties` settings
 - `AppWebAppListener` (`servlet/`) — application lifecycle initialization (extends Photon's `WebAppListener`)

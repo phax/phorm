@@ -104,8 +104,9 @@ The caller decides which rules apply.
    (as well as the profile name, the syntax version and, for CII based syntaxes, the Process ID).
    E.g. the Customization ID `urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0` on a UBL
    Invoice identifies a Peppol BIS Billing UBL Invoice V3 and leads to the VESID `eu.peppol.bis3:invoice:latest-active`
-4. **Resolution** - the determined VESID is parsed and looked up in the registry, that is filled on startup from the
-   aggregating `phive-rules-all` module.
+4. **Resolution** - the determined VESID is parsed and looked up in the registry, that is filled from the aggregating
+   `phive-rules-all` and `phive-rules-all-legacy` modules on the first use of `AppValidator`, not during the application
+   startup.
    If no document details can be determined, or if the determined VESID cannot be parsed or resolved, the call is
    answered with HTTP 400
 
@@ -483,7 +484,10 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
-v2.2.12 - work in progress
+v2.2.13 - work in progress
+* Fixed the `Dockerfile`, where a typo in `CATALINA_OPTS` prevented the Tomcat option `-Djava.security.egd=file:/dev/urandom` from being applied
+
+v2.2.12 - 2026-10-30
 * **Security: the Docker image now blocks the 16 compromised eMudhra intermediate CA certificates.**
   The private keys of 8 eMudhra intermediate CAs were compromised, and each of them is also cross-signed by Sectigo's AAA Certificate Services, which is still trusted by the JDK.
   The Java runtime does not check revocation by default, so outbound HTTPS connections relying on the JDK trust store could accept forged certificates.
