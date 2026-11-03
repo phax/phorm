@@ -174,7 +174,7 @@
       <dependency>
         <groupId>com.helger.kaltblut</groupId>
         <artifactId>kaltblut-parent-pom</artifactId>
-        <version>0.9.5</version>
+        <version>0.9.6</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
