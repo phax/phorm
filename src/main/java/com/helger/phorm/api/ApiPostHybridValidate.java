@@ -427,13 +427,15 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
 
         CommonAPIInvoker.invoke (aResultJson, aValidationRunnable::run);
 
+        // Document defaults to JSON
         if (aWrappedDD.isSet ())
           aResultJson.add ("documentDetails", aWrappedDD.get ().getAsJson ());
 
-        // Perform conversion
-        new JsonValidationResultListHelper ().ves (aWrappedVES.get ())
-                                             .sourceToJsonDefault (bEmitValidationSourceContent)
-                                             .applyTo (aResultJson, aWrappedVRL.get (), aDisplayLocale);
+        // Validation results to JSON
+        if (aWrappedVRL.isSet ())
+          new JsonValidationResultListHelper ().ves (aWrappedVES.get ())
+                                               .sourceToJsonDefault (bEmitValidationSourceContent)
+                                               .applyTo (aResultJson, aWrappedVRL.get (), aDisplayLocale);
 
         if (AppConfig.isLogResponsePayload ())
         {
