@@ -51,6 +51,7 @@ import com.helger.kaltblut.core.validate.HybridValidationLayer;
 import com.helger.kaltblut.core.validate.HybridValidationResult;
 import com.helger.kaltblut.core.validate.HybridValidator;
 import com.helger.mime.CMimeType;
+import com.helger.mime.determine.MimeTypeDeterminator;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
 import com.helger.phive.api.result.ValidationResult;
 import com.helger.phive.api.result.ValidationResultList;
@@ -162,6 +163,15 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
     if (aPayloadBytes == null || aPayloadBytes.length == 0)
     {
       final String sErrorMsg = "The request body is empty";
+      LOGGER.error (sLogPrefix + sErrorMsg);
+      aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
+      return;
+    }
+
+    if (!CMimeType.APPLICATION_PDF.equals (MimeTypeDeterminator.getInstance ()
+                                                               .getMimeTypeFromBytes (aPayloadBytes, null)))
+    {
+      final String sErrorMsg = "The request body is not a PDF document";
       LOGGER.error (sLogPrefix + sErrorMsg);
       aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
       return;

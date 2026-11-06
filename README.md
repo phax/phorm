@@ -271,7 +271,8 @@ The service offers the following REST APIs below `/api`.
   * Test invocation (replace `XXX` with real token):
     * `curl -X POST -H "Content-Type: application/xml" -H "X-Token: XXX" -d @src/test/resources/testfiles/peppol-bis3/base-example.xml http://localhost:8080/api/dd_and_validate/`
 * POST **`/api/hybrid_validate`**
-  * Validate a ZUGFeRD / Factur-X hybrid PDF invoice. The PDF must be the POST body. The carrier-side rules
+  * Validate a ZUGFeRD / Factur-X hybrid PDF invoice. The PDF must be the POST body.
+    A body that does not start with the PDF header `%PDF` is rejected with HTTP 400. The carrier-side rules
     (BR-HYBRID-* business rules and PDF/A-3 conformance via veraPDF) are evaluated by [kaltblut](https://github.com/phax/kaltblut),
     then the embedded XML is extracted, its document type auto-determined (as in `/api/dd_and_validate`), and
     its XML business rules applied.
@@ -486,6 +487,7 @@ As an alternative to using `private-application.properties` you may also conside
 
 v2.2.13 - work in progress
 * Fixed the `Dockerfile`, where a typo in `CATALINA_OPTS` prevented the Tomcat option `-Djava.security.egd=file:/dev/urandom` from being applied
+* `/api/hybrid_validate` now rejects a request body that is not a PDF document with HTTP 400
 
 v2.2.12 - 2026-10-30
 * **Security: the Docker image now blocks the 16 compromised eMudhra intermediate CA certificates.**
