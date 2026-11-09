@@ -36,7 +36,12 @@ public enum EPhormValidationType implements IValidationType
    * The PDF carrier (BR-HYBRID-* and PDF/A-3) layer of a ZUGFeRD / Factur-X hybrid invoice, as
    * produced by kaltblut.
    */
-  PDF_HYBRID_CARRIER ("pdf-hybrid-carrier", EValidationBaseType.PDF, "Hybrid PDF Carrier");
+  PDF_HYBRID_CARRIER ("pdf-hybrid-carrier", EValidationBaseType.PDF, "Hybrid PDF Carrier"),
+  /**
+   * The embedded invoice XML of a ZUGFeRD / Factur-X hybrid invoice, used to report that it could
+   * not be extracted, parsed or assigned to a validation executor set.
+   */
+  HYBRID_EMBEDDED_XML ("hybrid-embedded-xml", EValidationBaseType.XML, "Hybrid embedded XML");
 
   private final String m_sID;
   private final EValidationBaseType m_eBaseType;

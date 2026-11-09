@@ -277,6 +277,11 @@ The service offers the following REST APIs below `/api`.
     then the embedded XML is extracted, its document type auto-determined (as in `/api/dd_and_validate`), and
     its XML business rules applied.
     All layers are returned in a single phive `ValidationResultList`, with the PDF carrier layers first.
+    If the embedded XML cannot be extracted, parsed or assigned to a VESID, an error layer with artifact type
+    `hybrid-embedded-xml` is added instead, so the overall result is never valid without the XML validation.
+    The same layer reports the error `PHORM-HYBRID-01`, if the specification identifier (BT-24) of the embedded XML
+    does not match the profile declared in the XMP `ConformanceLevel` (checked for the ZUGFeRD 2.x / Factur-X
+    profiles MINIMUM, BASIC WL, BASIC, EN 16931 and EXTENDED).
   * Requires the HTTP header `X-Token` to have the configured value (see below for `phorm.api.requiredtoken`)
   * Optional URL query parameter `country=DE|FR|OTHER` drives the country-specific BR-HYBRID rules
     (BR-HYBRID-DE-*, BR-HYBRID-FR-*, BR-FX-DE-03 PDF/A downgrade). Defaults to `OTHER`.
@@ -488,6 +493,8 @@ As an alternative to using `private-application.properties` you may also conside
 v2.2.13 - work in progress
 * Fixed the `Dockerfile`, where a typo in `CATALINA_OPTS` prevented the Tomcat option `-Djava.security.egd=file:/dev/urandom` from being applied
 * `/api/hybrid_validate` now rejects a request body that is not a PDF document with HTTP 400
+* `/api/hybrid_validate` no longer reports success if the embedded XML could not be validated (e.g. if its document type could not be determined). Fixes [issue #22](https://github.com/phax/phorm/issues/22) - thx @yaworu
+* `/api/hybrid_validate` now checks that the specification identifier (BT-24) of the embedded XML matches the profile of the XMP metadata
 
 v2.2.12 - 2026-10-30
 * **Security: the Docker image now blocks the 16 compromised eMudhra intermediate CA certificates.**

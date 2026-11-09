@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -31,10 +32,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.helger.annotation.Nonempty;
+import com.helger.annotation.style.VisibleForTesting;
 import com.helger.base.io.stream.StreamHelper;
 import com.helger.base.string.StringHelper;
+import com.helger.base.string.StringImplode;
 import com.helger.base.wrapper.Wrapper;
 import com.helger.ddd.DocumentDetails;
+import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.http.CHttp;
 import com.helger.http.header.specific.AcceptMimeTypeList;
@@ -43,7 +47,10 @@ import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.kaltblut.core.extract.HybridExtractor;
+import com.helger.kaltblut.core.inspect.HybridInspector;
 import com.helger.kaltblut.core.model.EZugferdCountry;
+import com.helger.kaltblut.core.model.EZugferdFlavor;
+import com.helger.kaltblut.core.model.HybridMetadata;
 import com.helger.kaltblut.core.source.HybridLimits;
 import com.helger.kaltblut.core.source.HybridSource;
 import com.helger.kaltblut.core.source.IHybridSource;
@@ -68,6 +75,7 @@ import com.helger.phorm.ddd.PhormDDD;
 import com.helger.phorm.telemetry.CPhormTelemetry;
 import com.helger.phorm.telemetry.PhormMetrics;
 import com.helger.phorm.validation.AppValidator;
+import com.helger.phorm.validation.EHybridSpecificationID;
 import com.helger.phorm.validation.HybridFindingConverter;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
@@ -120,6 +128,266 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
                    sCountry +
                    "' - falling back to default. Valid values are: DE, FR, OTHER");
     return eCountry;
+  }
+
+  private static void _checkSpecificationID (@Nullable final HybridMetadata aMetadata,
+                                             @Nullable final String sSpecificationID,
+                                             @NonNull final String sLogPrefix,
+                                             @NonNull final ErrorList aEmbeddedXmlErrors)
+  {
+    // ZUGFeRD 1.0 uses a different XML syntax and other profiles
+    if (aMetadata == null || aMetadata.getFlavor () == null || aMetadata.getFlavor () == EZugferdFlavor.ZUGFERD_1)
+      return;
+
+    // Unknown profiles are reported by kaltblut; XRECHNUNG is not covered
+    final EHybridSpecificationID eSpecID = EHybridSpecificationID.getFromProfileOrNull (aMetadata.getProfile ());
+    if (eSpecID == null)
+      return;
+
+    if (!eSpecID.isAllowedSpecificationID (sSpecificationID))
+    {
+      final String sErrorMsg = "The specification identifier (BT-24) '" +
+                               sSpecificationID +
+                               "' of the embedded invoice XML is not allowed for the profile '" +
+                               eSpecID.getProfile ().getID () +
+                               "' declared in the XMP metadata. Allowed values are: " +
+                               StringImplode.getImploded (", ", eSpecID.getAllSpecificationIDs ());
+      LOGGER.warn (sLogPrefix + sErrorMsg);
+      aEmbeddedXmlErrors.add (HybridFindingConverter.createEmbeddedXmlError (HybridFindingConverter.ERROR_ID_SPECIFICATION_ID,
+                                                                             sErrorMsg));
+    }
+  }
+
+  /**
+   * Run the hybrid validation: the PDF carrier layers of kaltblut first, then the validation of the
+   * embedded XML.
+   *
+   * @param aPayloadBytes
+   *        The PDF bytes. May not be <code>null</code>.
+   * @param eCountry
+   *        The optional ZUGFeRD country. May be <code>null</code>.
+   * @param aDisplayLocale
+   *        The display locale to use. May not be <code>null</code>.
+   * @param sLogPrefix
+   *        The log prefix to use. May not be <code>null</code>.
+   * @param aDDConsumer
+   *        Invoked with the determined document details of the embedded XML. May not be
+   *        <code>null</code>.
+   * @param aVESConsumer
+   *        Invoked with the validation executor set used for the embedded XML. May not be
+   *        <code>null</code>.
+   * @return The combined validation result list. Never <code>null</code>.
+   */
+  @NonNull
+  @VisibleForTesting
+  static ValidationResultList validateHybrid (final byte @NonNull [] aPayloadBytes,
+                                              @Nullable final EZugferdCountry eCountry,
+                                              @NonNull final Locale aDisplayLocale,
+                                              @NonNull final String sLogPrefix,
+                                              @NonNull final Consumer <DocumentDetails> aDDConsumer,
+                                              @NonNull final Consumer <IValidationExecutorSet <IValidationSourceXML>> aVESConsumer)
+  {
+    final IHybridSource aHybridSource = HybridSource.fromBytes (aPayloadBytes);
+
+    final HybridLimits aHybridLimits = HybridLimits.DEFAULTS;
+
+    // 1) Run hybrid PDF carrier validation
+    LOGGER.info (sLogPrefix +
+                 "Running hybrid PDF carrier validation" +
+                 (eCountry != null ? " (country=" + eCountry + ")" : "") +
+                 " with limits: " +
+                 aHybridLimits);
+
+    final HybridValidator aHybridValidator = new HybridValidator ();
+    aHybridValidator.getSettings ().setLimits (aHybridLimits);
+    if (eCountry != null)
+      aHybridValidator.getSettings ().setCountry (eCountry);
+
+    final HybridValidationResult aHybridResult = Telemetry.withSpan (CPhormTelemetry.SPAN_KALTBLUT_VALIDATE,
+                                                                     ETelemetrySpanKind.INTERNAL,
+                                                                     aSpan -> {
+                                                                       aSpan.setAttribute (CPhormTelemetry.ATTR_PAYLOAD_SIZE_BYTES,
+                                                                                           aPayloadBytes.length);
+                                                                       if (eCountry != null)
+                                                                         aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_COUNTRY,
+                                                                                             eCountry.name ());
+
+                                                                       try
+                                                                       {
+                                                                         final HybridValidationResult aRes = aHybridValidator.validate (aHybridSource);
+                                                                         aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_LAYERS,
+                                                                                             aRes.getAllLayers ()
+                                                                                                 .size ());
+                                                                         PhormMetrics.KALTBLUT_RUNS.add (1,
+                                                                                                         TelemetryAttributes.builder ()
+                                                                                                                            .put ("outcome",
+                                                                                                                                  "ok")
+                                                                                                                            .put ("country",
+                                                                                                                                  eCountry != null ? eCountry.name ()
+                                                                                                                                                   : "none")
+                                                                                                                            .build ());
+                                                                         return aRes;
+                                                                       }
+                                                                       catch (final IOException ex)
+                                                                       {
+                                                                         PhormMetrics.KALTBLUT_RUNS.add (1,
+                                                                                                         TelemetryAttributes.builder ()
+                                                                                                                            .put ("outcome",
+                                                                                                                                  "parse_fail")
+                                                                                                                            .put ("country",
+                                                                                                                                  eCountry != null ? eCountry.name ()
+                                                                                                                                                   : "none")
+                                                                                                                            .build ());
+                                                                         /*
+                                                                          * Fatal: cannot proceed
+                                                                          * without parsing the PDF
+                                                                          */
+                                                                         LOGGER.error (sLogPrefix +
+                                                                                       "Failed to parse PDF for hybrid validation",
+                                                                                       ex);
+                                                                         throw new IllegalStateException ("Failed to parse PDF for hybrid validation: " +
+                                                                                                          ex.getMessage (),
+                                                                                                          ex);
+                                                                       }
+                                                                     });
+
+    // Convert to our VRL
+    final ValidationResultList aVRL = new ValidationResultList (ValidationSourceBinary.create (null, aPayloadBytes));
+    for (final HybridValidationLayer aLayer : aHybridResult.getAllLayers ())
+      aVRL.add (HybridFindingConverter.toValidationResult (aLayer));
+    final int nCarrierLayerCount = aVRL.size ();
+
+    // Read the XMP metadata for the profile
+    HybridMetadata aMetadata;
+    try
+    {
+      aMetadata = HybridInspector.readMetadata (aHybridSource, aHybridLimits);
+    }
+    catch (final IOException ex)
+    {
+      LOGGER.warn (sLogPrefix + "Could not read the XMP metadata: " + ex.getMessage ());
+      aMetadata = null;
+    }
+
+    // All errors on the embedded XML
+    final ErrorList aEmbeddedXmlErrors = new ErrorList ();
+
+    // 2) Try to extract and validate the embedded XML
+
+    // Extract the XML from the PDF
+    final byte [] aXmlBytes = Telemetry.withSpan (CPhormTelemetry.SPAN_KALTBLUT_EXTRACT_XML,
+                                                  ETelemetrySpanKind.INTERNAL,
+                                                  aSpan -> {
+                                                    try
+                                                    {
+                                                      final byte [] aBytes = HybridExtractor.extractInvoiceXml (aHybridSource);
+                                                      final int nLen = aBytes == null ? 0 : aBytes.length;
+                                                      aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_XML_EXTRACTED,
+                                                                          nLen > 0)
+                                                           .setAttribute (CPhormTelemetry.ATTR_HYBRID_XML_BYTES, nLen);
+                                                      if (nLen > 0)
+                                                      {
+                                                        PhormMetrics.KALTBLUT_EMBEDDED_XML_BYTES.record (nLen,
+                                                                                                         TelemetryAttributes.builder ()
+                                                                                                                            .put ("country",
+                                                                                                                                  eCountry != null ? eCountry.name ()
+                                                                                                                                                   : "none")
+                                                                                                                            .build ());
+                                                      }
+                                                      return aBytes;
+                                                    }
+                                                    catch (final IOException ex)
+                                                    {
+                                                      aSpan.recordException (ex)
+                                                           .setAttribute (CPhormTelemetry.ATTR_HYBRID_XML_EXTRACTED,
+                                                                          false);
+                                                      LOGGER.warn (sLogPrefix +
+                                                                   "Could not extract invoice XML: " +
+                                                                   ex.getMessage ());
+                                                      return null;
+                                                    }
+                                                  });
+
+    if (aXmlBytes == null || aXmlBytes.length == 0)
+    {
+      final String sErrorMsg = "No embedded invoice XML could be extracted from the PDF";
+      LOGGER.warn (sLogPrefix + sErrorMsg);
+      aEmbeddedXmlErrors.add (HybridFindingConverter.createEmbeddedXmlError (null, sErrorMsg));
+    }
+    else
+    {
+      LOGGER.info (sLogPrefix + "Successfully extracted " + aXmlBytes.length + " XML bytes from PDF");
+
+      final Document aDoc = DOMReader.readXMLDOM (aXmlBytes);
+      if (aDoc == null || aDoc.getDocumentElement () == null)
+      {
+        final String sErrorMsg = "The embedded invoice XML could not be parsed";
+        LOGGER.warn (sLogPrefix + sErrorMsg);
+        aEmbeddedXmlErrors.add (HybridFindingConverter.createEmbeddedXmlError (null, sErrorMsg));
+      }
+      else
+      {
+        // Run DDD
+        final Wrapper <Element> aInnerElement = Wrapper.empty ();
+        // No unwrapper callback needed, as hybrid invoices don't contain SBDH or so
+        final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement (), null, aInnerElement::set);
+        // Remember the partial document details as well
+        if (aDD != null)
+        {
+          aDDConsumer.accept (aDD);
+
+          // Check the BT-24 against the profile of the XMP metadata
+          _checkSpecificationID (aMetadata, aDD.getCustomizationID (), sLogPrefix, aEmbeddedXmlErrors);
+        }
+
+        if (aDD == null || !aDD.hasVESID ())
+        {
+          final String sErrorMsg = "Failed to determine the document type of the embedded invoice XML, so it could not be validated";
+          LOGGER.warn (sLogPrefix + sErrorMsg);
+          aEmbeddedXmlErrors.add (HybridFindingConverter.createEmbeddedXmlError (null, sErrorMsg));
+        }
+        else
+        {
+          final var aVESID = DVRCoordinate.parseOrNull (aDD.getVESID ());
+          final var aVES = aVESID == null ? null : AppValidator.getVESOrNull (aVESID);
+          if (aVES == null)
+          {
+            final String sErrorMsg = "The VESID '" +
+                                     aDD.getVESID () +
+                                     "' of the embedded invoice XML could not be resolved, so it could not be validated";
+            LOGGER.warn (sLogPrefix + sErrorMsg);
+            aEmbeddedXmlErrors.add (HybridFindingConverter.createEmbeddedXmlError (null, sErrorMsg));
+          }
+          else
+          {
+            aVESConsumer.accept (aVES);
+
+            final IValidationSourceXML aValSrc = aInnerElement.isSet () ? ValidationSourceXML.createPartial (null,
+                                                                                                             aInnerElement.get ())
+                                                                        : ValidationSourceXML.create (null, aDoc);
+
+            LOGGER.info (sLogPrefix + "Performing XML validation using VESID '" + aVESID.getAsSingleID () + "'");
+
+            // Run XML validation
+            final ValidationResultList aXmlVRL = AppValidator.validate (aVES, aValSrc, aDisplayLocale, "hybrid");
+            for (final ValidationResult aXmlLayer : aXmlVRL)
+              aVRL.add (aXmlLayer);
+          }
+        }
+      }
+    }
+
+    // The embedded XML layer goes directly after the PDF carrier layers
+    if (aEmbeddedXmlErrors.isNotEmpty ())
+      aVRL.addAt (nCarrierLayerCount, HybridFindingConverter.createEmbeddedXmlResult (aEmbeddedXmlErrors));
+
+    // Aggregate duration: kaltblut layer + any XML layers
+    Duration aTotalDuration = Duration.ZERO;
+    for (final ValidationResult aVR : aVRL)
+      aTotalDuration = aTotalDuration.plus (aVR.getDuration ());
+    aVRL.setValidationDuration (aTotalDuration);
+
+    return aVRL;
   }
 
   @Override
@@ -181,178 +449,19 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
     final EZugferdCountry eCountry = _parseCountry (aRequestScope.params ().getAsString (QUERY_PARAM_COUNTRY),
                                                     sLogPrefix);
 
-    final IHybridSource aHybridSource = HybridSource.fromBytes (aPayloadBytes);
-
     final Locale aDisplayLocale = CApp.DEFAULT_LOCALE;
     final Wrapper <ValidationResultList> aWrappedVRL = Wrapper.empty ();
     final Wrapper <IValidationExecutorSet <IValidationSourceXML>> aWrappedVES = Wrapper.empty ();
     final Wrapper <DocumentDetails> aWrappedDD = Wrapper.empty ();
 
     final Runnable aValidationRunnable = () -> {
-      final HybridLimits aHybridLimits = HybridLimits.DEFAULTS;
-
-      // 1) Run hybrid PDF carrier validation
-      LOGGER.info (sLogPrefix +
-                   "Running hybrid PDF carrier validation" +
-                   (eCountry != null ? " (country=" + eCountry + ")" : "") +
-                   " with limits: " +
-                   aHybridLimits);
-
-      final HybridValidator aHybridValidator = new HybridValidator ();
-      aHybridValidator.getSettings ().setLimits (aHybridLimits);
-      if (eCountry != null)
-        aHybridValidator.getSettings ().setCountry (eCountry);
-
-      final var aHybridResult = Telemetry.withSpan (CPhormTelemetry.SPAN_KALTBLUT_VALIDATE,
-                                                    ETelemetrySpanKind.INTERNAL,
-                                                    aSpan -> {
-                                                      aSpan.setAttribute (CPhormTelemetry.ATTR_PAYLOAD_SIZE_BYTES,
-                                                                          aPayloadBytes.length);
-                                                      if (eCountry != null)
-                                                        aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_COUNTRY,
-                                                                            eCountry.name ());
-
-                                                      try
-                                                      {
-                                                        final HybridValidationResult aRes = aHybridValidator.validate (aHybridSource);
-                                                        aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_LAYERS,
-                                                                            aRes.getAllLayers ().size ());
-                                                        PhormMetrics.KALTBLUT_RUNS.add (1,
-                                                                                        TelemetryAttributes.builder ()
-                                                                                                           .put ("outcome",
-                                                                                                                 "ok")
-                                                                                                           .put ("country",
-                                                                                                                 eCountry != null ? eCountry.name ()
-                                                                                                                                  : "none")
-                                                                                                           .build ());
-                                                        return aRes;
-                                                      }
-                                                      catch (final IOException ex)
-                                                      {
-                                                        PhormMetrics.KALTBLUT_RUNS.add (1,
-                                                                                        TelemetryAttributes.builder ()
-                                                                                                           .put ("outcome",
-                                                                                                                 "parse_fail")
-                                                                                                           .put ("country",
-                                                                                                                 eCountry != null ? eCountry.name ()
-                                                                                                                                  : "none")
-                                                                                                           .build ());
-                                                        /*
-                                                         * Fatal: cannot proceed without parsing the
-                                                         * PDF
-                                                         */
-                                                        LOGGER.error (sLogPrefix +
-                                                                      "Failed to parse PDF for hybrid validation",
-                                                                      ex);
-                                                        throw new IllegalStateException ("Failed to parse PDF for hybrid validation: " +
-                                                                                         ex.getMessage (),
-                                                                                         ex);
-                                                      }
-                                                    });
-
-      // Convert to our VRL
-      final ValidationResultList aVRL = new ValidationResultList (ValidationSourceBinary.create (null, aPayloadBytes));
-      for (final HybridValidationLayer aLayer : aHybridResult.getAllLayers ())
-        aVRL.add (HybridFindingConverter.toValidationResult (aLayer));
-
-      // 2) Try to extract and validate the embedded XML
-
-      // Extract the XML from the PDF
-      final byte [] aXmlBytes = Telemetry.withSpan (CPhormTelemetry.SPAN_KALTBLUT_EXTRACT_XML,
-                                                    ETelemetrySpanKind.INTERNAL,
-                                                    aSpan -> {
-                                                      try
-                                                      {
-                                                        final byte [] aBytes = HybridExtractor.extractInvoiceXml (aHybridSource);
-                                                        final int nLen = aBytes == null ? 0 : aBytes.length;
-                                                        aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_XML_EXTRACTED,
-                                                                            nLen > 0)
-                                                             .setAttribute (CPhormTelemetry.ATTR_HYBRID_XML_BYTES,
-                                                                            nLen);
-                                                        if (nLen > 0)
-                                                        {
-                                                          PhormMetrics.KALTBLUT_EMBEDDED_XML_BYTES.record (nLen,
-                                                                                                           TelemetryAttributes.builder ()
-                                                                                                                              .put ("country",
-                                                                                                                                    eCountry != null ? eCountry.name ()
-                                                                                                                                                     : "none")
-                                                                                                                              .build ());
-                                                        }
-                                                        return aBytes;
-                                                      }
-                                                      catch (final IOException ex)
-                                                      {
-                                                        aSpan.recordException (ex)
-                                                             .setAttribute (CPhormTelemetry.ATTR_HYBRID_XML_EXTRACTED,
-                                                                            false);
-                                                        LOGGER.warn (sLogPrefix +
-                                                                     "Could not extract invoice XML: " +
-                                                                     ex.getMessage ());
-                                                        return null;
-                                                      }
-                                                    });
-
-      if (aXmlBytes == null || aXmlBytes.length == 0)
-      {
-        LOGGER.info (sLogPrefix + "No embedded invoice XML was extracted - returning PDF carrier results only");
-      }
-      else
-      {
-        LOGGER.info (sLogPrefix + "Successfully extracted " + aXmlBytes.length + " XML bytes from PDF");
-
-        final Document aDoc = DOMReader.readXMLDOM (aXmlBytes);
-        if (aDoc == null || aDoc.getDocumentElement () == null)
-        {
-          LOGGER.warn (sLogPrefix + "The embedded XML could not be parsed - skipping XML validation");
-        }
-        else
-        {
-          // Run DDD
-          final Wrapper <Element> aInnerElement = Wrapper.empty ();
-          // No unwrapper callback needed, as hybrid invoices don't contain SBDH or so
-          final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement (),
-                                                                    null,
-                                                                    aInnerElement::set);
-          if (aDD == null || !aDD.hasVESID ())
-          {
-            LOGGER.warn (sLogPrefix + "Failed to determine document details for the embedded XML");
-          }
-          else
-          {
-            aWrappedDD.set (aDD);
-
-            final var aVESID = DVRCoordinate.parseOrNull (aDD.getVESID ());
-            final var aVES = aVESID == null ? null : AppValidator.getVESOrNull (aVESID);
-            if (aVES == null)
-            {
-              LOGGER.warn (sLogPrefix + "VESID '" + aDD.getVESID () + "' could not be resolved");
-            }
-            else
-            {
-              aWrappedVES.set (aVES);
-
-              final IValidationSourceXML aValSrc = aInnerElement.isSet () ? ValidationSourceXML.createPartial (null,
-                                                                                                               aInnerElement.get ())
-                                                                          : ValidationSourceXML.create (null, aDoc);
-
-              LOGGER.info (sLogPrefix + "Performing XML validation using VESID '" + aVESID.getAsSingleID () + "'");
-
-              // Run XML validation
-              final ValidationResultList aXmlVRL = AppValidator.validate (aVES, aValSrc, aDisplayLocale, "hybrid");
-              for (final ValidationResult aXmlLayer : aXmlVRL)
-                aVRL.add (aXmlLayer);
-            }
-          }
-        }
-      }
-
+      final ValidationResultList aVRL = validateHybrid (aPayloadBytes,
+                                                        eCountry,
+                                                        aDisplayLocale,
+                                                        sLogPrefix,
+                                                        aWrappedDD::set,
+                                                        aWrappedVES::set);
       aWrappedVRL.set (aVRL);
-
-      // Aggregate duration: kaltblut layer + any XML layers
-      long nTotalMs = 0;
-      for (final ValidationResult aVR : aVRL)
-        nTotalMs += aVR.getDurationMS ();
-      aVRL.setValidationDuration (Duration.ofMillis (nTotalMs));
 
       if (aVRL.getOverallValidity ().isValid ())
       {

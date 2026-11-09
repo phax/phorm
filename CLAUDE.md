@@ -41,7 +41,7 @@ docker run -d --name phorm -p 8080:8080 phelger/phorm
 - `ApiGetAllVESIDs` — GET `/api/get/vesids` — list all registered validation executor set IDs
 - `ApiPostDetermineDocDetails` — POST `/api/determinedoctype` — auto-detect document format
 - `ApiPostDetermineDocTypeAndValidate` — POST `/api/dd_and_validate` — detect + validate in one call
-- `ApiPostHybridValidate` — POST `/api/hybrid_validate` — validate a ZUGFeRD / Factur-X hybrid PDF: PDF carrier via kaltblut, then the embedded XML (optional `?country=DE|FR|OTHER`)
+- `ApiPostHybridValidate` — POST `/api/hybrid_validate` — validate a ZUGFeRD / Factur-X hybrid PDF: PDF carrier via kaltblut, then the embedded XML (optional `?country=DE|FR|OTHER`); the BT-24 of the embedded XML is checked against the XMP profile (`EHybridSpecificationID`), and any problem with the embedded XML is reported in a `hybrid-embedded-xml` layer
 
 ### Core Components
 - `AppValidator` (`validation/`) — static registry of all `ValidationExecutorSet` instances; loads all phive-rules and phive-rules-legacy in a static initialiser on first use of the class, not in `AppWebAppListener`
