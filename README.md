@@ -490,10 +490,11 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
-v2.2.13 - work in progress
+v2.2.13 - 2026-11-09
 * Fixed the `Dockerfile`, where a typo in `CATALINA_OPTS` prevented the Tomcat option `-Djava.security.egd=file:/dev/urandom` from being applied
 * `/api/hybrid_validate` now rejects a request body that is not a PDF document with HTTP 400
-* `/api/hybrid_validate` no longer reports success if the embedded XML could not be validated (e.g. if its document type could not be determined). Fixes [issue #22](https://github.com/phax/phorm/issues/22) - thx @yaworu
+* `/api/hybrid_validate` no longer reports success if the embedded XML could not be validated (e.g. if its document type could not be determined).
+  Fixes [issue #22](https://github.com/phax/phorm/issues/22) - thx @yaworu
 * `/api/hybrid_validate` now checks that the specification identifier (BT-24) of the embedded XML matches the profile of the XMP metadata
 
 v2.2.12 - 2026-10-30
@@ -519,8 +520,10 @@ v2.2.9 - 2026-09-25
 * Updated to phive-rules 4.6.1
 * Updated to phive-rules-legacy 4.6.1
 * The OpenTelemetry SDK is no longer registered via `setResultAsGlobal ()`, but built first and registered in a separate, guarded step.
-  `setResultAsGlobal ()` registers from inside `build ()` and throws if a global `OpenTelemetry` instance is already present - realistically when Phorm runs with the OpenTelemetry Java agent while `phorm.telemetry.enabled` is still `true`. That aborted the startup with an opaque `IllegalStateException: GlobalOpenTelemetry.set has already been called` and leaked the SDK that had just been built, because the exception leaves no handle to close it and Phorm disables the OpenTelemetry shutdown hook (it manages shutdown itself).
-  Now such an instance is kept, the surplus SDK is shut down, and a warning names `phorm.telemetry.enabled=false` as the fix. The Phorm metrics then register against the already present instance, so running with the agent works instead of failing.
+  `setResultAsGlobal ()` registers from inside `build ()` and throws if a global `OpenTelemetry` instance is already present - realistically when Phorm runs with the OpenTelemetry Java agent while `phorm.telemetry.enabled` is still `true`.
+  That aborted the startup with an opaque `IllegalStateException: GlobalOpenTelemetry.set has already been called` and leaked the SDK that had just been built, because the exception leaves no handle to close it and Phorm disables the OpenTelemetry shutdown hook (it manages shutdown itself).
+  Now such an instance is kept, the surplus SDK is shut down, and a warning names `phorm.telemetry.enabled=false` as the fix.
+  The Phorm metrics then register against the already present instance, so running with the agent works instead of failing.
 
 v2.2.8 - 2026-09-23
 * Updated to phive-rules 4.6.0
@@ -585,10 +588,8 @@ v2.1.0 - 2026-05-14
 * Updated to phive-rules 4.3.2 (including new rules for Hungarian invoice format)
 * Updated to ddd 0.8.7
 * Added new API `/api/hybrid_validate` for ZUGFeRD / Factur-X hybrid PDF invoices.
-  The PDF carrier (BR-HYBRID-* + PDF/A-3 via veraPDF) is validated by [kaltblut](https://github.com/phax/kaltblut)
-  and the embedded invoice XML is auto-detected and validated against the matching VESID; both
-  layers are returned in a single `ValidationResultList`. An optional `?country=DE|FR|OTHER`
-  query parameter drives the country-specific BR-HYBRID rules.
+  The PDF carrier (BR-HYBRID-* + PDF/A-3 via veraPDF) is validated by [kaltblut](https://github.com/phax/kaltblut) and the embedded invoice XML is auto-detected and validated against the matching VESID; both layers are returned in a single `ValidationResultList`.
+  An optional `?country=DE|FR|OTHER` query parameter drives the country-specific BR-HYBRID rules.
 
 v2.0.4 - 2026-05-09
 * Updated to phive-rules 4.3.1 (including new rules for Turkish invoice format)
