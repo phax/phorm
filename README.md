@@ -490,6 +490,9 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.2.14 - 2026-11-15
+* Updated to phive-rules 4.7.0
+
 v2.2.13 - 2026-11-09
 * Fixed the `Dockerfile`, where a typo in `CATALINA_OPTS` prevented the Tomcat option `-Djava.security.egd=file:/dev/urandom` from being applied
 * `/api/hybrid_validate` now rejects a request body that is not a PDF document with HTTP 400
