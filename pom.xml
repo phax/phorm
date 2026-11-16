@@ -124,7 +124,7 @@
       <dependency>
         <groupId>com.helger.schematron</groupId>
         <artifactId>ph-schematron-bom</artifactId>
-        <version>10.3.2</version>
+        <version>10.3.3</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -138,7 +138,7 @@
       <dependency>
         <groupId>com.helger.diver</groupId>
         <artifactId>ph-diver-bom</artifactId>
-        <version>4.2.3</version>
+        <version>4.3.0-SNAPSHOT</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -248,6 +248,14 @@
     <dependency>
       <groupId>com.helger.phive.rules</groupId>
       <artifactId>phive-rules-all-legacy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.helger.phive</groupId>
+      <artifactId>phive-ves-engine</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.helger.diver</groupId>
+      <artifactId>ph-diver-repo-config</artifactId>
     </dependency>
 
     <!-- Telemetry: ph-telemetry facade + OTel binding + SDK + OTLP exporter. The WAR ships
