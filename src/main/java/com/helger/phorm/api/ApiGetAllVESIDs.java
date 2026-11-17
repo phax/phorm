@@ -85,6 +85,8 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
                                                     .add ("name", aEntry.getDisplayName ());
           if (bIsLatest)
             aObj.add ("latest", true);
+          // Only present for VES loaded from an external repository
+          aObj.addIfNotNull ("repository", AppValidator.getExternalRepositoryIDOfVES (aVESID));
           aJsonIDs.add (aObj);
         }
       aJson.add ("count", aJsonIDs.size ());

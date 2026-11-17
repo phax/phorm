@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +66,40 @@ public abstract class AbstractAPIInvoker implements IAPIExecutor
   @Nonempty
   protected abstract String getEndpointName ();
 
+  private static boolean _verifyTokenOrSetForbidden (@NonNull final IRequestWebScopeWithoutResponse aRequestScope,
+                                                     @NonNull final PhotonUnifiedResponse aUnifiedResponse,
+                                                     @NonNull @Nonempty final String sLogPrefix,
+                                                     @Nullable final String sRequiredToken)
+  {
+    return Telemetry.withSpan (CPhormTelemetry.SPAN_AUTH_CHECK, ETelemetrySpanKind.INTERNAL, aSpan -> {
+      if (LOGGER.isDebugEnabled ())
+        LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
+
+      final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
+      final int nTokenLength = sToken == null ? 0 : sToken.length ();
+      aSpan.setAttribute (CPhormTelemetry.ATTR_AUTH_TOKEN_LENGTH, nTokenLength);
+
+      if (StringHelper.isEmpty (sToken))
+      {
+        aSpan.setAttribute (CPhormTelemetry.ATTR_AUTH_RESULT, "missing_token");
+        LOGGER.error (sLogPrefix + "The specific token header is missing");
+        aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
+        return Boolean.FALSE;
+      }
+
+      if (!sToken.equals (sRequiredToken))
+      {
+        aSpan.setAttribute (CPhormTelemetry.ATTR_AUTH_RESULT, "wrong_token");
+        LOGGER.error (sLogPrefix + "The specified token value does not match the configured required token");
+        aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
+        return Boolean.FALSE;
+      }
+
+      aSpan.setAttribute (CPhormTelemetry.ATTR_AUTH_RESULT, "ok");
+      return Boolean.TRUE;
+    }).booleanValue ();
+  }
+
   /**
    * Verify the {@value #HEADER_X_TOKEN} HTTP header against the configured required token. On
    * failure sets HTTP 403 on the response and returns <code>false</code>. Records a
@@ -84,33 +119,36 @@ public abstract class AbstractAPIInvoker implements IAPIExecutor
                                                     @NonNull final PhotonUnifiedResponse aUnifiedResponse,
                                                     @NonNull @Nonempty final String sLogPrefix)
   {
-    return Telemetry.withSpan (CPhormTelemetry.SPAN_AUTH_CHECK, ETelemetrySpanKind.INTERNAL, aSpan -> {
-      if (LOGGER.isDebugEnabled ())
-        LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
+    return _verifyTokenOrSetForbidden (aRequestScope, aUnifiedResponse, sLogPrefix, AppConfig.getAPIRequiredToken ());
+  }
 
-      final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
-      final int nTokenLength = sToken == null ? 0 : sToken.length ();
-      aSpan.setAttribute (CPhormTelemetry.ATTR_AUTH_TOKEN_LENGTH, nTokenLength);
-
-      if (StringHelper.isEmpty (sToken))
-      {
-        aSpan.setAttribute (CPhormTelemetry.ATTR_AUTH_RESULT, "missing_token");
-        LOGGER.error (sLogPrefix + "The specific token header is missing");
-        aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
-        return Boolean.FALSE;
-      }
-
-      if (!sToken.equals (AppConfig.getAPIRequiredToken ()))
-      {
-        aSpan.setAttribute (CPhormTelemetry.ATTR_AUTH_RESULT, "wrong_token");
-        LOGGER.error (sLogPrefix + "The specified token value does not match the configured required token");
-        aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
-        return Boolean.FALSE;
-      }
-
-      aSpan.setAttribute (CPhormTelemetry.ATTR_AUTH_RESULT, "ok");
-      return Boolean.TRUE;
-    }).booleanValue ();
+  /**
+   * Verify the {@value #HEADER_X_TOKEN} HTTP header against the configured admin token
+   * (<code>phorm.api.admin.token</code>). Behaves like
+   * {@link #verifyAuthOrSetForbidden(IRequestWebScopeWithoutResponse, PhotonUnifiedResponse, String)}
+   * otherwise. If no admin token is configured, every request is rejected.
+   *
+   * @param aRequestScope
+   *        The current request scope. Never <code>null</code>.
+   * @param aUnifiedResponse
+   *        The response to mark as 403 on failure. Never <code>null</code>.
+   * @param sLogPrefix
+   *        Log line prefix for error messages. Never <code>null</code>.
+   * @return <code>true</code> when authentication succeeded, <code>false</code> when the response
+   *         has been marked as 403.
+   */
+  protected final boolean verifyAdminAuthOrSetForbidden (@NonNull final IRequestWebScopeWithoutResponse aRequestScope,
+                                                         @NonNull final PhotonUnifiedResponse aUnifiedResponse,
+                                                         @NonNull @Nonempty final String sLogPrefix)
+  {
+    final String sAdminToken = AppConfig.getAdminToken ();
+    if (StringHelper.isEmpty (sAdminToken))
+    {
+      LOGGER.error (sLogPrefix + "No admin token is configured");
+      aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
+      return false;
+    }
+    return _verifyTokenOrSetForbidden (aRequestScope, aUnifiedResponse, sLogPrefix, sAdminToken);
   }
 
   public final void invokeAPI (@NonNull final IAPIDescriptor aAPIDescriptor,

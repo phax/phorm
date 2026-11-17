@@ -58,6 +58,10 @@ This is the point where validation is worth the most: an invalid document is rej
 
 Two configuration properties make Phorm usable as a gate and not just as a reporting tool:
 * **`phorm.api.requiredtoken`** - the value the `X-Token` HTTP header must carry for any API call to be accepted
+* **`phorm.api.admin.token`**: the specific value of the `X-Token` header that must be provided to access the admin API (`/api/admin/*`).
+  If it is empty (the default), the admin API is disabled.
+* **`phorm.repositories.file`**: the path to an XML file describing additional external validation repositories - see *External repositories* below.
+  If it is empty (the default), only the built-in rules are available.
 * **`phorm.api.response.onfailure.http400`** - if `true` (the default), a failed validation is answered with HTTP 400
   instead of HTTP 200, so the caller can use the HTTP status alone as the gate decision, without parsing the result
   structure first
@@ -229,6 +233,7 @@ The service offers the following REST APIs below `/api`.
 * GET **`/api/get/vesids`**
   * Get a list of all registered VESIDs
   * The optional URL parameter `include-deprecated` can be used to also return registered, but deprecated VES IDs. No parameter value is needed
+  * VES loaded from an external repository (see *External repositories* below) carry the additional field `repository` with the repository ID
   * The result is a JSON structure
     * `curl -X GET http://localhost:8080/api/get/vesids`
 * POST **`/api/determinedoctype`**
@@ -289,6 +294,18 @@ The service offers the following REST APIs below `/api`.
     (JSON by default, XML on `application/xml`, HTML on `text/html`)
   * Test invocation (replace `XXX` with real token):
     * `curl -X POST -H "Content-Type: application/pdf" -H "X-Token: XXX" --data-binary @invoice.pdf "http://localhost:8080/api/hybrid_validate?country=DE"`
+
+The admin APIs are only available if `phorm.api.admin.token` is configured. They require the HTTP header `X-Token` to have the value of `phorm.api.admin.token` (not of `phorm.api.requiredtoken`).
+
+* GET **`/api/admin/repositories`**
+  * Get the configured repository configuration file, the date and time of the last successful load, all external repositories with the number of VES loaded from each, and all VESIDs loaded from them
+  * The result is a JSON structure
+    * `curl -X GET -H "X-Token: XXX" http://localhost:8080/api/admin/repositories`
+* POST **`/api/admin/repositories/reload`**
+  * Reload all external repositories from the file configured in `phorm.repositories.file`. Nothing is changed if any error occurs - the previously loaded VES stay active
+  * On success the JSON result contains `"success":true`, the VESIDs that were `added` and `removed`, and the same information as `/api/admin/repositories`
+  * On failure HTTP 500 is returned, with `"success":false` and all problems in `errors`
+    * `curl -X POST -H "X-Token: XXX" http://localhost:8080/api/admin/repositories/reload`
 
 ## Servlets
 
@@ -393,6 +410,27 @@ It supports the following settings:
   The default is `false` — when disabled, every telemetry call inside Phorm collapses to a cheap no-op and no OTel network connection is opened.
   Set to `true` to opt in.
 
+## External repositories
+
+In addition to the built-in rules from phive-rules, Phorm can load validation executor sets (VES) from local [ph-diver](https://github.com/phax/ph-diver) repositories, e.g. a checkout of [phive-central](https://github.com/phax/phive-central) or a repository with company specific rules.
+The repositories are described in an XML file, referenced by `phorm.repositories.file`, using the ph-diver repository configuration format (namespace URI `urn:fdc:com:helger:diver:repoconfig:v1.0`):
+
+```xml
+<repositories xmlns="urn:fdc:com:helger:diver:repoconfig:v1.0">
+  <repository id="custom-rules" type="localfs" toptoc="diver-xml">
+    <property name="basedir">/phorm/repositories/custom-rules</property>
+  </repository>
+</repositories>
+```
+
+* Only the repository type `localfs` (local file system) is supported. A relative `basedir` is resolved against the directory of the XML file
+* Each repository must have a top-level ToC (`toptoc="diver-xml"`, i.e. the file `toptoc-diver.xml`), because all VES of a repository are found via the top-level ToC and the ToC per artifact
+* A VES may only require other VES from the same repository
+* Only VES using XML Schema and/or Schematron are supported
+* All VES are loaded on startup. Any problem aborts the startup: an invalid XML file, a repository that can't be created, a VES that can't be loaded (including its required VES), and a VESID that is contained in more than one repository or that is already a built-in VESID
+* The loaded VES are used by `/api/validate/{vesid}` exactly like the built-in ones. They are not considered by the document type detection of `/api/determinedoctype`, `/api/dd_and_validate` and `/api/hybrid_validate`
+* Use `/api/admin/repositories/reload` to reload the repositories without a restart
+
 ## OpenTelemetry
 
 When `phorm.telemetry.enabled=true`, Phorm initialises the OpenTelemetry SDK once at startup via `AutoConfiguredOpenTelemetrySdk` (no Java agent required). Configure exporters and resource attributes with the standard OTel environment variables (or `-D` system properties) — Phorm itself adds nothing on top:
@@ -454,6 +492,16 @@ Running:
 docker run -d --name phorm -p 8080:8080 phelger/phorm
 ```
 
+To use external repositories, mount the XML file and the repositories into the container and point `phorm.repositories.file` to the file, e.g. via a system property.
+Setting `CATALINA_OPTS` replaces the value from the `Dockerfile`, so its options must be repeated:
+
+```shell
+docker run -d --name phorm -p 8080:8080 \
+  -v /local/repositories:/phorm/repositories:ro \
+  -e CATALINA_OPTS="-Djava.security.egd=file:/dev/urandom -Dphorm.repositories.file=/phorm/repositories/repositories.xml" \
+  phelger/phorm
+```
+
 Example curl command (use the correct "X-Token" and the right address):
 ```
 curl -d "@base-example.xml" -H "Content-Type: application/xml" -H "X-Token: XXX" -X POST http://localhost:8080/api/validate/eu.peppol.bis3:invoice:latest
@@ -489,6 +537,12 @@ As an alternative to using `private-application.properties` you may also conside
    see https://github.com/phax/ph-commons/wiki/ph-config for details.
 
 # News and noteworthy
+
+v2.2.16 - work in progress
+* Added support for external local validation repositories, described in an XML file referenced by the new configuration property `phorm.repositories.file`. See the new section *External repositories*
+* Added the admin APIs `GET /api/admin/repositories` and `POST /api/admin/repositories/reload`, enabled by the new configuration property `phorm.api.admin.token`
+* `/api/get/vesids` returns the new field `repository` for VES loaded from an external repository
+* Updated to ph-diver 4.3.0
 
 v2.2.15 - 2026-11-17
 * Updated to phive-rules 4.7.1

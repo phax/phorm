@@ -35,6 +35,8 @@ public final class CPhormTelemetry
   public static final String SPAN_API_DETERMINE_DOCTYPE = "phorm.api.determinedoctype";
   public static final String SPAN_API_HYBRID_VALIDATE = "phorm.api.hybrid_validate";
   public static final String SPAN_API_GET_VESIDS = "phorm.api.get_vesids";
+  public static final String SPAN_API_ADMIN_GET_REPOSITORIES = "phorm.api.admin_get_repositories";
+  public static final String SPAN_API_ADMIN_RELOAD_REPOSITORIES = "phorm.api.admin_reload_repositories";
 
   public static final String SPAN_AUTH_CHECK = "phorm.auth.check";
   public static final String SPAN_PAYLOAD_READ = "phorm.payload.read";
@@ -45,6 +47,7 @@ public final class CPhormTelemetry
   public static final String SPAN_KALTBLUT_VALIDATE = "phorm.kaltblut.validate";
   public static final String SPAN_KALTBLUT_EXTRACT_XML = "phorm.kaltblut.extract_xml";
   public static final String SPAN_RESPONSE_SERIALIZE = "phorm.response.serialize";
+  public static final String SPAN_REPOSITORIES_LOAD = "phorm.repositories.load";
 
   // === Attribute keys ===
   public static final String ATTR_HTTP_METHOD = "http.request.method";
@@ -89,6 +92,10 @@ public final class CPhormTelemetry
   public static final String ATTR_RESPONSE_FORMAT = "phorm.response.format";
 
   public static final String ATTR_INCLUDE_DEPRECATED = "phorm.include_deprecated";
+
+  public static final String ATTR_REPOSITORIES_SUCCESS = "phorm.repositories.success";
+  public static final String ATTR_REPOSITORIES_COUNT = "phorm.repositories.count";
+  public static final String ATTR_REPOSITORIES_VES_COUNT = "phorm.repositories.ves_count";
 
   private CPhormTelemetry ()
   {}

@@ -92,6 +92,18 @@ public final class AppConfig
     return getConfig ().getAsStringOrFallback ("phorm.api.requiredtoken", "valsvc.api.requiredtoken");
   }
 
+  @Nullable
+  public static String getAdminToken ()
+  {
+    return getConfig ().getAsString ("phorm.api.admin.token");
+  }
+
+  @Nullable
+  public static String getRepositoriesFile ()
+  {
+    return getConfig ().getAsString ("phorm.repositories.file");
+  }
+
   public static boolean isUseHttp400OnValidationFailure ()
   {
     return _getAsBooleanWithFallback ("phorm.api.response.onfailure.http400",
