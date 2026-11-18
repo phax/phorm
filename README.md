@@ -538,7 +538,8 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
-v2.2.16 - work in progress
+v2.3.0 - work in progress
+* Requires Java 21 as the baseline
 * Added support for external local validation repositories, described in an XML file referenced by the new configuration property `phorm.repositories.file`. See the new section *External repositories*
 * Added the admin APIs `GET /api/admin/repositories` and `POST /api/admin/repositories/reload`, enabled by the new configuration property `phorm.api.admin.token`
 * `/api/get/vesids` returns the new field `repository` for VES loaded from an external repository

@@ -108,15 +108,15 @@ public class AppValidator
   @Nullable
   public static IValidationExecutorSet <IValidationSourceXML> getVESOrNull (@NonNull final DVRCoordinate aVESID)
   {
-    return RW_LOCK.readLockedGet ( () -> VESREG.getOfID (aVESID));
+    return RW_LOCK.readLockedGet (() -> VESREG.getOfID (aVESID));
   }
 
   @Nullable
   public static String getLatestVersion (@NonNull final DVRCoordinate aVESID)
   {
-    final IValidationExecutorSet <IValidationSourceXML> aLatest = RW_LOCK.readLockedGet ( () -> VESREG.getLatestVersion (aVESID.getGroupID (),
-                                                                                                                         aVESID.getArtifactID (),
-                                                                                                                         null));
+    final IValidationExecutorSet <IValidationSourceXML> aLatest = RW_LOCK.readLockedGet (() -> VESREG.getLatestVersion (aVESID.getGroupID (),
+                                                                                                                        aVESID.getArtifactID (),
+                                                                                                                        null));
     return aLatest == null ? null : aLatest.getID ().getVersionString ();
   }
 
@@ -139,7 +139,7 @@ public class AppValidator
   @Nullable
   public static String getExternalRepositoryIDOfVES (@NonNull final DVRCoordinate aVESID)
   {
-    return RW_LOCK.readLockedGet ( () -> EXTERNAL_VESIDS.get (aVESID));
+    return RW_LOCK.readLockedGet (() -> EXTERNAL_VESIDS.get (aVESID));
   }
 
   /**
@@ -171,7 +171,7 @@ public class AppValidator
   @Nullable
   public static OffsetDateTime getExternalRepositoriesLoadDateTime ()
   {
-    return RW_LOCK.readLockedGet ( () -> s_aExternalLoadDT);
+    return RW_LOCK.readLockedGet (() -> s_aExternalLoadDT);
   }
 
   @NonNull
@@ -195,7 +195,7 @@ public class AppValidator
       aNewVES = aResult.getAllVES ();
     }
 
-    return RW_LOCK.writeLockedGet ( () -> {
+    return RW_LOCK.writeLockedGet (() -> {
       // Everything registered that was not loaded externally is built-in
       for (final ExternalVES aExternalVES : aNewVES)
       {
@@ -242,7 +242,8 @@ public class AppValidator
    * @return {@link ESuccess#SUCCESS} if the external VES were replaced.
    */
   @NonNull
-  public static ESuccess loadExternalRepositories (@Nullable final File aConfigFile, @NonNull final ErrorList aErrorList)
+  public static ESuccess loadExternalRepositories (@Nullable final File aConfigFile,
+                                                   @NonNull final ErrorList aErrorList)
   {
     return Telemetry.withSpan (CPhormTelemetry.SPAN_REPOSITORIES_LOAD, ETelemetrySpanKind.INTERNAL, aSpan -> {
       final ESuccess eSuccess = _loadExternalRepositories (aConfigFile, aErrorList);
