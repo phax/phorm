@@ -112,7 +112,7 @@ public final class ExampleRepositoryTest
     assertTrue (aVRL.toString (), aVRL.getOverallValidity ().isInvalid ());
     // The Schematron layer is skipped after the XSD failed
     assertEquals (aVRL.toString (), 2, aVRL.size ());
-    assertTrue (aVRL.toString (), aVRL.get (1).isSkipped ());
+    assertTrue (aVRL.toString (), aVRL.get (1).getValidity ().isSkipped ());
   }
 
   @Test
@@ -129,6 +129,6 @@ public final class ExampleRepositoryTest
 
     // ORD-02 is only a warning
     for (final IError aError : aVRL.getAllFailures ())
-      assertEquals (aError.toString (), !aError.getErrorID ().equals ("ORD-02"), aError.isError ());
+      assertTrue (aError.toString (), aError.getErrorID ().equals ("ORD-02") != aError.isError ());
   }
 }
