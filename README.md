@@ -289,7 +289,10 @@ The service offers the following REST APIs below `/api`.
     profiles MINIMUM, BASIC WL, BASIC, EN 16931 and EXTENDED).
   * Requires the HTTP header `X-Token` to have the configured value (see below for `phorm.api.requiredtoken`)
   * Optional URL query parameter `country=DE|FR|OTHER` drives the country-specific BR-HYBRID rules
-    (BR-HYBRID-DE-*, BR-HYBRID-FR-*, BR-FX-DE-03 PDF/A downgrade). Defaults to `OTHER`.
+    (BR-HYBRID-DE-*, BR-HYBRID-FR-*, BR-FX-DE-03 PDF/A downgrade).
+    If it is not provided, the country is auto-detected from the seller and buyer countries of the embedded XML.
+    The country-specific rules are then only applied if seller and buyer are in the same country (DE or FR);
+    otherwise `OTHER` is used.
   * Response format follows the same `Accept` header convention as `/api/dd_and_validate`
     (JSON by default, XML on `application/xml`, HTML on `text/html`)
   * Test invocation (replace `XXX` with real token):
@@ -544,6 +547,8 @@ v2.3.0 - work in progress
 * Added the admin APIs `GET /api/admin/repositories` and `POST /api/admin/repositories/reload`, enabled by the new configuration property `phorm.api.admin.token`
 * `/api/get/vesids` returns the new field `repository` for VES loaded from an external repository
 * Updated to ph-diver 4.3.0
+* Updated to kaltblut 1.0.0
+* `/api/hybrid_validate` auto-detects the country from the embedded XML, if the query parameter `country` is not provided. Previously `OTHER` was used
 
 v2.2.15 - 2026-11-17
 * Updated to phive-rules 4.7.1
