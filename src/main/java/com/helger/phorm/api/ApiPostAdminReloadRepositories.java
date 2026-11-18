@@ -51,6 +51,7 @@ import com.helger.web.scope.IRequestWebScopeWithoutResponse;
  * If anything fails, the previously loaded VES stay active.
  *
  * @author Philip Helger
+ * @since 2.3.0
  */
 public class ApiPostAdminReloadRepositories extends AbstractAPIInvoker
 {

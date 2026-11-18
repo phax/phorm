@@ -45,6 +45,7 @@ import com.helger.web.scope.IRequestWebScopeWithoutResponse;
  * Admin API: get the external repositories and the VES loaded from them
  *
  * @author Philip Helger
+ * @since 2.3.0
  */
 public class ApiGetAdminRepositories extends AbstractAPIInvoker
 {
@@ -65,27 +66,36 @@ public class ApiGetAdminRepositories extends AbstractAPIInvoker
    */
   static void fillRepositoryStatus (@NonNull final IJsonObject aJson)
   {
+    // Base folder
     final File aConfigFile = AppValidator.getConfiguredRepositoriesFile ();
     aJson.addIfNotNull ("configFile", aConfigFile == null ? null : aConfigFile.getAbsolutePath ());
 
+    // When was it loaded?
     final OffsetDateTime aLoadDT = AppValidator.getExternalRepositoriesLoadDateTime ();
     aJson.addIfNotNull ("loadDateTime",
                         aLoadDT == null ? null : DateTimeFormatter.ISO_OFFSET_DATE_TIME.format (aLoadDT));
 
+    // Get all repo VESIDs
     final ICommonsOrderedMap <DVRCoordinate, String> aExternalVESIDs = AppValidator.getAllExternalVESIDs ();
 
-    final IJsonArray aJsonRepos = new JsonArray ();
-    for (final String sRepoID : AppValidator.getAllExternalRepositoryIDs ())
-      aJsonRepos.add (new JsonObject ().add ("id", sRepoID)
-                                       .add ("vesCount",
-                                             aExternalVESIDs.values ().stream ().filter (sRepoID::equals).count ()));
-    aJson.add ("repositories", aJsonRepos);
+    {
+      // Repos
+      final IJsonArray aJsonRepos = new JsonArray ();
+      for (final String sRepoID : AppValidator.getAllExternalRepositoryIDs ())
+        aJsonRepos.add (new JsonObject ().add ("id", sRepoID)
+                                         .add ("vesCount",
+                                               aExternalVESIDs.values ().stream ().filter (sRepoID::equals).count ()));
+      aJson.add ("repositories", aJsonRepos);
+    }
 
-    final IJsonArray aJsonVESIDs = new JsonArray ();
-    for (final Map.Entry <DVRCoordinate, String> aEntry : aExternalVESIDs.entrySet ())
-      aJsonVESIDs.add (new JsonObject ().add ("vesid", aEntry.getKey ().getAsSingleID ())
-                                        .add ("repository", aEntry.getValue ()));
-    aJson.add ("vesids", aJsonVESIDs);
+    {
+      // VESIDs
+      final IJsonArray aJsonVESIDs = new JsonArray ();
+      for (final Map.Entry <DVRCoordinate, String> aEntry : aExternalVESIDs.entrySet ())
+        aJsonVESIDs.add (new JsonObject ().add ("vesid", aEntry.getKey ().getAsSingleID ())
+                                          .add ("repository", aEntry.getValue ()));
+      aJson.add ("vesids", aJsonVESIDs);
+    }
   }
 
   @Override

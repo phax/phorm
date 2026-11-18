@@ -136,6 +136,7 @@ public abstract class AbstractAPIInvoker implements IAPIExecutor
    *        Log line prefix for error messages. Never <code>null</code>.
    * @return <code>true</code> when authentication succeeded, <code>false</code> when the response
    *         has been marked as 403.
+   * @since 2.3.0
    */
   protected final boolean verifyAdminAuthOrSetForbidden (@NonNull final IRequestWebScopeWithoutResponse aRequestScope,
                                                          @NonNull final PhotonUnifiedResponse aUnifiedResponse,

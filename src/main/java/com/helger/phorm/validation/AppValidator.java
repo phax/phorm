@@ -135,6 +135,7 @@ public class AppValidator
    * @param aVESID
    *        The VESID to check. May not be <code>null</code>.
    * @return <code>null</code> if the VES is unknown or one of the built-in VES.
+   * @since 2.3.0
    */
   @Nullable
   public static String getExternalRepositoryIDOfVES (@NonNull final DVRCoordinate aVESID)
@@ -145,6 +146,7 @@ public class AppValidator
   /**
    * @return A copy of all VESIDs loaded from external repositories, mapped to the ID of the
    *         repository they were loaded from. Never <code>null</code>.
+   * @since 2.3.0
    */
   @NonNull
   @ReturnsMutableCopy
@@ -156,6 +158,7 @@ public class AppValidator
   /**
    * @return The IDs of all external repositories in the order of declaration. Never
    *         <code>null</code>.
+   * @since 2.3.0
    */
   @NonNull
   @ReturnsMutableCopy
@@ -167,6 +170,7 @@ public class AppValidator
   /**
    * @return The date and time when the external repositories were last loaded successfully.
    *         <code>null</code> if they were never loaded.
+   * @since 2.3.0
    */
   @Nullable
   public static OffsetDateTime getExternalRepositoriesLoadDateTime ()
@@ -240,6 +244,7 @@ public class AppValidator
    * @param aErrorList
    *        The error list to be filled. May not be <code>null</code>.
    * @return {@link ESuccess#SUCCESS} if the external VES were replaced.
+   * @since 2.3.0
    */
   @NonNull
   public static ESuccess loadExternalRepositories (@Nullable final File aConfigFile,
@@ -260,6 +265,7 @@ public class AppValidator
   /**
    * @return The repository configuration file from the configuration property
    *         <code>phorm.repositories.file</code>. <code>null</code> if the property is not set.
+   * @since 2.3.0
    */
   @Nullable
   public static File getConfiguredRepositoriesFile ()
@@ -274,6 +280,7 @@ public class AppValidator
    *
    * @throws InitializationException
    *         if loading failed. This aborts the startup.
+   * @since 2.3.0
    */
   public static void initExternalRepositories ()
   {

@@ -9,7 +9,7 @@ Phorm — standalone XML document validation service built on the [phive](https:
 ## Build & Run Commands
 
 ```bash
-# Build (requires Java 17+, Java 21 recommended)
+# Build (requires Java 21+)
 mvn clean install
 
 # Build via Docker Maven image (no local Java needed)

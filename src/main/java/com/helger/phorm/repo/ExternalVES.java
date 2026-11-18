@@ -28,6 +28,7 @@ import com.helger.phive.xml.source.IValidationSourceXML;
  * A validation executor set that was loaded from an external repository.
  *
  * @author Philip Helger
+ * @since 2.3.0
  */
 @Immutable
 public final class ExternalVES

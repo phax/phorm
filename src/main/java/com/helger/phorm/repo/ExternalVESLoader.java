@@ -52,6 +52,7 @@ import com.helger.phorm.CApp;
  * registered here - see <code>AppValidator</code> for that.
  *
  * @author Philip Helger
+ * @since 2.3.0
  */
 @Immutable
 public final class ExternalVESLoader

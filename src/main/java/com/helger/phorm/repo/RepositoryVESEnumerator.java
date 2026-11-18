@@ -39,6 +39,7 @@ import com.helger.phive.ves.engine.load.VESLoader;
  * artefact.
  *
  * @author Philip Helger
+ * @since 2.3.0
  */
 @Immutable
 public final class RepositoryVESEnumerator

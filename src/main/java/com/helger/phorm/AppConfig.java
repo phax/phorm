@@ -92,12 +92,14 @@ public final class AppConfig
     return getConfig ().getAsStringOrFallback ("phorm.api.requiredtoken", "valsvc.api.requiredtoken");
   }
 
+  /** @since 2.3.0 */
   @Nullable
   public static String getAdminToken ()
   {
     return getConfig ().getAsString ("phorm.api.admin.token");
   }
 
+  /** @since 2.3.0 */
   @Nullable
   public static String getRepositoriesFile ()
   {

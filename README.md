@@ -201,7 +201,7 @@ flowchart LR
 
 # Development environment
 
-* Requires Java 17 or newer - Java 21 or later is recommended
+* Requires Java 21 or newer
 * [Apache Maven](https://maven.apache.org) is used as the build tool. May be abstracted by a Docker image.
 * Coding language: English
 
@@ -364,7 +364,7 @@ try (final PhormClient aClient = PhormClient.builder ()
 }
 ```
 
-* Requires Java 17 or newer, like Phorm itself
+* Requires Java 17 or newer
 * Covers all five REST APIs listed above, in the JSON, XML and HTML representation
 * Returns the regular phive `ValidationResultList` and [ddd](https://github.com/phax/ddd) `DocumentDetails`
   object models, and keeps the unparsed HTTP response reachable for everything the typed model does not cover
@@ -460,7 +460,7 @@ OTEL_LOGS_EXPORTER="otlp"
 
 ## From Source
 
-* Requires Java 17 or higher
+* Requires Java 21 or higher
 * Build with Apache Maven 3.x - via `mvn clean install`
 
 * Alternatively build with a Docker Maven image:
