@@ -80,6 +80,7 @@ public final class RepositoryVESEnumerator
         if (aToc != null)
           for (final DVRVersion aVersion : aToc.getAllVersionsOnly ())
           {
+            // A version in the ToC is not necessarily a VES
             final DVRCoordinate aCoord = new DVRCoordinate (sGroupID, sArtifactID, aVersion);
             if (aRepo.exists (RepoStorageKeyOfArtefact.of (aCoord, VESLoader.FILE_EXT_VES)))
               ret.add (aCoord);

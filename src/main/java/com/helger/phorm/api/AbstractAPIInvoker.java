@@ -76,6 +76,7 @@ public abstract class AbstractAPIInvoker implements IAPIExecutor
         LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
 
       final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
+      // Never record the token value itself
       final int nTokenLength = sToken == null ? 0 : sToken.length ();
       aSpan.setAttribute (CPhormTelemetry.ATTR_AUTH_TOKEN_LENGTH, nTokenLength);
 

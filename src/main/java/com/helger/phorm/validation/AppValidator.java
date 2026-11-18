@@ -186,6 +186,7 @@ public class AppValidator
     final ICommonsList <ExternalVES> aNewVES;
     if (aConfigFile == null)
     {
+      // No configuration file - all external VES are removed
       aNewRepoIDs = new CommonsArrayList <> ();
       aNewVES = new CommonsArrayList <> ();
     }
@@ -217,10 +218,12 @@ public class AppValidator
       if (aErrorList.containsAtLeastOneError ())
         return ESuccess.FAILURE;
 
+      // Remove all previously loaded external VES
       for (final DVRCoordinate aVESID : EXTERNAL_VESIDS.keySet ())
         VESREG.unregisterValidationExecutorSet (aVESID);
       EXTERNAL_VESIDS.clear ();
 
+      // Register the new ones
       for (final ExternalVES aExternalVES : aNewVES)
       {
         VESREG.registerValidationExecutorSet (aExternalVES.getVES ());
@@ -254,6 +257,7 @@ public class AppValidator
       final ESuccess eSuccess = _loadExternalRepositories (aConfigFile, aErrorList);
       final boolean bSuccess = eSuccess.isSuccess ();
       aSpan.setAttribute (CPhormTelemetry.ATTR_REPOSITORIES_SUCCESS, bSuccess);
+      // The counts reflect the new state only on success
       if (bSuccess)
         aSpan.setAttribute (CPhormTelemetry.ATTR_REPOSITORIES_COUNT, getAllExternalRepositoryIDs ().size ())
              .setAttribute (CPhormTelemetry.ATTR_REPOSITORIES_VES_COUNT, getAllExternalVESIDs ().size ());

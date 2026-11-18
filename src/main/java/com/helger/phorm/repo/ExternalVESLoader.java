@@ -68,7 +68,8 @@ public final class ExternalVESLoader
     private final ICommonsList <String> m_aRepositoryIDs;
     private final ICommonsList <ExternalVES> m_aVES;
 
-    public LoadResult (@NonNull final ICommonsList <String> aRepositoryIDs, @NonNull final ICommonsList <ExternalVES> aVES)
+    public LoadResult (@NonNull final ICommonsList <String> aRepositoryIDs,
+                       @NonNull final ICommonsList <ExternalVES> aVES)
     {
       ValueEnforcer.notNull (aRepositoryIDs, "RepositoryIDs");
       ValueEnforcer.notNull (aVES, "VES");
@@ -110,26 +111,33 @@ public final class ExternalVESLoader
    */
   @Nullable
   private static IValidationExecutorSet <IValidationSourceXML> _loadVES (@NonNull final VESLoader aLoader,
-                                                                        @NonNull final String sRepoID,
-                                                                        @NonNull final DVRCoordinate aVESID,
-                                                                        @NonNull final ErrorList aErrorList)
+                                                                         @NonNull final String sRepoID,
+                                                                         @NonNull final DVRCoordinate aVESID,
+                                                                         @NonNull final ErrorList aErrorList)
   {
     final String sErrorPrefix = "VES '" + aVESID.getAsSingleID () + "' from repository '" + sRepoID + "': ";
 
+    // Copy all loading errors, prefixed with the VES and the repository
     final ErrorList aLoadingErrors = new ErrorList ();
     final LoadedVES aLoadedVES = aLoader.loadVESFromRepo (aVESID, aLoadingErrors);
     aLoadingErrors.forEach (x -> aErrorList.add (SingleError.builder (x)
-                                                            .errorText (sErrorPrefix + x.getErrorText (CApp.DEFAULT_LOCALE))
+                                                            .errorText (sErrorPrefix +
+                                                                        x.getErrorText (CApp.DEFAULT_LOCALE))
                                                             .build ()));
     if (aLoadedVES == null || aLoadingErrors.containsAtLeastOneError ())
     {
-      aErrorList.add (SingleError.builderError ().errorFieldName (sRepoID).errorText (sErrorPrefix + "failed to load").build ());
+      // Loading error
+      aErrorList.add (SingleError.builderError ()
+                                 .errorFieldName (sRepoID)
+                                 .errorText (sErrorPrefix + "failed to load")
+                                 .build ());
       return null;
     }
 
     final EVESSyntax eSyntax = aLoadedVES.getHeader ().getVESSyntax ();
     if (eSyntax != EVESSyntax.XSD && eSyntax != EVESSyntax.SCHEMATRON)
     {
+      // Unsupported syntax
       aErrorList.add (SingleError.builderError ()
                                  .errorFieldName (sRepoID)
                                  .errorText (sErrorPrefix +
@@ -142,6 +150,7 @@ public final class ExternalVESLoader
 
     if (!aLoadedVES.hasExecutor ())
     {
+      // Empty VES
       aErrorList.add (SingleError.builderError ()
                                  .errorFieldName (sRepoID)
                                  .errorText (sErrorPrefix + "the VES has no executor and can't be used for validation")
@@ -172,14 +181,22 @@ public final class ExternalVESLoader
     ValueEnforcer.notNull (aConfigFile, "ConfigFile");
     ValueEnforcer.notNull (aErrorList, "ErrorList");
 
+    // Parse the file
     final RepoStorageConfig aConfig = RepoStorageConfigReader.read (aConfigFile, aErrorList);
     if (aConfig == null)
+    {
+      // ErrorList is filled
       return null;
+    }
 
     final ICommonsList <ConfiguredRepoStorage> aRepos = aConfig.createAllRepoStorages (RepoStorageFactoryRegistry.createDefault (),
                                                                                        aErrorList);
+    // Don't continue with only some of the repositories
     if (aErrorList.containsAtLeastOneError ())
+    {
+      // ErrorList is filled
       return null;
+    }
 
     final ICommonsList <String> aRepoIDs = new CommonsArrayList <> ();
     final ICommonsOrderedMap <DVRCoordinate, ExternalVES> aAllVES = new CommonsLinkedHashMap <> ();
@@ -188,6 +205,7 @@ public final class ExternalVESLoader
       final String sRepoID = aRepo.getID ();
       aRepoIDs.add (sRepoID);
 
+      // The top-level ToC is needed to enumerate the VES
       if (!aRepo.hasTopTocService ())
       {
         aErrorList.add (SingleError.builderError ()
@@ -209,6 +227,7 @@ public final class ExternalVESLoader
 
       for (final DVRCoordinate aVESID : aVESIDs)
       {
+        // The same VESID in two repositories is ambiguous
         final ExternalVES aExisting = aAllVES.get (aVESID);
         if (aExisting != null)
         {
@@ -231,6 +250,7 @@ public final class ExternalVESLoader
       }
     }
 
+    // All or nothing - a single failed VES fails the whole load
     if (aErrorList.containsAtLeastOneError ())
       return null;
     return new LoadResult (aRepoIDs, aAllVES.copyOfValues ());

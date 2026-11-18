@@ -87,8 +87,10 @@ public class ApiPostAdminReloadRepositories extends AbstractAPIInvoker
 
     final IJsonObject aJson = new JsonObject ();
     final ErrorList aErrorList = new ErrorList ();
+    // Remember the old VESIDs to determine the added and removed ones
     final ICommonsSet <DVRCoordinate> aOldVESIDs = AppValidator.getAllExternalVESIDs ().copyOfKeySet ();
 
+    // On failure, the previously loaded VES stay active
     LOGGER.info (sLogPrefix + "Reloading the external repositories");
     final ESuccess eSuccess = AppValidator.loadExternalRepositories (AppValidator.getConfiguredRepositoriesFile (),
                                                                      aErrorList);
@@ -96,12 +98,14 @@ public class ApiPostAdminReloadRepositories extends AbstractAPIInvoker
       aJson.add (CPhiveJson.JSON_SUCCESS, eSuccess.isSuccess ());
       if (eSuccess.isSuccess ())
       {
+        // Report the differences to the previous state
         final ICommonsSet <DVRCoordinate> aNewVESIDs = AppValidator.getAllExternalVESIDs ().copyOfKeySet ();
         aJson.add ("added", _getAsSortedJsonArray (aNewVESIDs.getAll (x -> !aOldVESIDs.contains (x))));
         aJson.add ("removed", _getAsSortedJsonArray (aOldVESIDs.getAll (x -> !aNewVESIDs.contains (x))));
         ApiGetAdminRepositories.fillRepositoryStatus (aJson);
       }
 
+      // Always contained, as warnings may also occur on success
       final IJsonArray aJsonErrors = new JsonArray ();
       for (final IError aError : aErrorList)
         aJsonErrors.add (PhiveJsonHelper.getJsonError (aError, CApp.DEFAULT_LOCALE));
