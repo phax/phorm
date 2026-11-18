@@ -433,6 +433,7 @@ The repositories are described in an XML file, referenced by `phorm.repositories
 * All VES are loaded on startup. Any problem aborts the startup: an invalid XML file, a repository that can't be created, a VES that can't be loaded (including its required VES), and a VESID that is contained in more than one repository or that is already a built-in VESID
 * The loaded VES are used by `/api/validate/{vesid}` exactly like the built-in ones. They are not considered by the document type detection of `/api/determinedoctype`, `/api/dd_and_validate` and `/api/hybrid_validate`
 * Use `/api/admin/repositories/reload` to reload the repositories without a restart
+* The folder [example-repository](example-repository) contains a small example repository for testing
 
 ## OpenTelemetry
 
