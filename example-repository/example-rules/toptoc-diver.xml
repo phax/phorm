@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<repotoptoc xmlns="urn:com:helger:diver:repotoptoc:v1.0">
+  <group name="com">
+    <group name="example">
+      <artifact name="order" />
+      <artifact name="order-rules" />
+      <artifact name="order-sch" />
+      <artifact name="order-xsd" />
+    </group>
+  </group>
+</repotoptoc>

@@ -25,7 +25,7 @@
     <version>3.2.0</version>
   </parent>
   <artifactId>phorm</artifactId>
-  <version>2.2.16-SNAPSHOT</version>
+  <version>2.3.0-SNAPSHOT</version>
   <packaging>war</packaging>
   <name>phorm</name>
   <description>Phorm - Generic Document Validation Service</description>
@@ -62,6 +62,7 @@
   </developers>
   
   <properties>
+    <java.version>21</java.version>
     <log4j.version>2.26.1</log4j.version>
     <opentelemetry.version>1.68.0</opentelemetry.version>
 
@@ -103,7 +104,7 @@
       <dependency>
         <groupId>com.helger.photon</groupId>
         <artifactId>ph-oton-bom</artifactId>
-        <version>10.8.1</version>
+        <version>10.9.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -131,14 +132,14 @@
       <dependency>
         <groupId>com.helger.peppol</groupId>
         <artifactId>peppol-commons-bom</artifactId>
-        <version>13.2.3</version>
+        <version>13.3.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.diver</groupId>
-        <artifactId>ph-diver-parent-pom</artifactId>
-        <version>4.2.3</version>
+        <artifactId>ph-diver-bom</artifactId>
+        <version>4.4.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -174,7 +175,7 @@
       <dependency>
         <groupId>com.helger.kaltblut</groupId>
         <artifactId>kaltblut-bom</artifactId>
-        <version>0.9.7</version>
+        <version>1.0.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -252,6 +253,10 @@
     <dependency>
       <groupId>com.helger.phive</groupId>
       <artifactId>phive-ves-engine</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.helger.diver</groupId>
+      <artifactId>ph-diver-repo-config</artifactId>
     </dependency>
 
     <!-- Telemetry: ph-telemetry facade + OTel binding + SDK + OTLP exporter. The WAR ships

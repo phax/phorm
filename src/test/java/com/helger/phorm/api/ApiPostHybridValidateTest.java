@@ -24,6 +24,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.junit.Test;
 
 import com.helger.base.io.stream.StreamHelper;
@@ -42,12 +43,19 @@ import com.helger.phorm.validation.HybridFindingConverter;
 public final class ApiPostHybridValidateTest
 {
   @NonNull
-  private static ValidationResultList _validate (@NonNull final String sFilename)
+  private static ValidationResultList _validate (@NonNull final String sFilename,
+                                                 @Nullable final EZugferdCountry eCountry)
   {
     final byte [] aPdf = StreamHelper.getAllBytes (new ClassPathResource ("testfiles/hybrid/" + sFilename));
     assertNotNull (aPdf);
 
-    return ApiPostHybridValidate.validateHybrid (aPdf, EZugferdCountry.DE, CApp.DEFAULT_LOCALE, "[test] ", x -> {}, x -> {});
+    return ApiPostHybridValidate.validateHybrid (aPdf, eCountry, CApp.DEFAULT_LOCALE, "[test] ", x -> {}, x -> {});
+  }
+
+  @NonNull
+  private static ValidationResultList _validate (@NonNull final String sFilename)
+  {
+    return _validate (sFilename, EZugferdCountry.DE);
   }
 
   @NonNull
@@ -96,6 +104,21 @@ public final class ApiPostHybridValidateTest
   public void testValidFacturX ()
   {
     final ValidationResultList aVRL = _validate ("factur-x-en16931-valid.pdf");
+    for (final ValidationResult aVR : aVRL)
+      assertNotSame (HybridFindingConverter.ARTEFACT_EMBEDDED_XML, aVR.getValidationArtefact ());
+
+    // 2 PDF carrier layers and the XML layers
+    assertTrue (aVRL.toString (), aVRL.size () > 2);
+  }
+
+  /**
+   * Without a country, the country is auto-detected from the embedded XML.
+   */
+  @Test
+  public void testValidFacturXAutoCountry ()
+  {
+    final ValidationResultList aVRL = _validate ("factur-x-en16931-valid.pdf", null);
+    assertTrue (aVRL.toString (), aVRL.getOverallValidity ().isValid ());
     for (final ValidationResult aVR : aVRL)
       assertNotSame (HybridFindingConverter.ARTEFACT_EMBEDDED_XML, aVR.getValidationArtefact ());
 
