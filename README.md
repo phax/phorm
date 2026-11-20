@@ -543,6 +543,7 @@ As an alternative to using `private-application.properties` you may also conside
 # News and noteworthy
 
 v2.3.0 - work in progress
+* **Security: the Docker image disables the HotSpot Base64 intrinsic (`-XX:-UseBASE64Intrinsics`) as mitigation for CVE-2026-114938 ("Java2Shell").**
 * Requires Java 21 as the baseline
 * Added support for external local validation repositories, described in an XML file referenced by the new configuration property `phorm.repositories.file`. See the new section *External repositories*
 * Added the admin APIs `GET /api/admin/repositories` and `POST /api/admin/repositories/reload`, enabled by the new configuration property `phorm.api.admin.token`
