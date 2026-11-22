@@ -78,6 +78,15 @@ public final class PhormMetrics
                                                                                                     "Size of XML extracted from a hybrid PDF",
                                                                                                     "By");
 
+  /**
+   * Loads of the external repositories, by outcome.
+   *
+   * @since 2.3.0
+   */
+  public static final ITelemetryCounter REPOSITORY_LOADS = TelemetryMetrics.counter ("phorm.repositories.loads",
+                                                                                     "Loads of the external repositories",
+                                                                                     "{load}");
+
   /** Number of validation executor sets currently registered. */
   public static final ITelemetryGauge VES_REGISTRY_SIZE = TelemetryMetrics.gauge ("phorm.ves.registry.size",
                                                                                   "Number of registered validation executor sets",

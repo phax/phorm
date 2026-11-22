@@ -34,12 +34,15 @@ import com.helger.phorm.AppErrorHandler;
 import com.helger.phorm.AppMetaManager;
 import com.helger.phorm.AppSecurity;
 import com.helger.phorm.CApp;
+import com.helger.phorm.api.ApiGetAdminRepositories;
 import com.helger.phorm.api.ApiGetAllVESIDs;
+import com.helger.phorm.api.ApiPostAdminReloadRepositories;
 import com.helger.phorm.api.ApiPostDetermineDocDetails;
 import com.helger.phorm.api.ApiPostDetermineDocTypeAndValidate;
 import com.helger.phorm.api.ApiPostHybridValidate;
 import com.helger.phorm.api.ApiPostValidate;
 import com.helger.phorm.telemetry.PhormMetrics;
+import com.helger.phorm.validation.AppValidator;
 import com.helger.photon.api.APIDescriptor;
 import com.helger.photon.api.APIPath;
 import com.helger.photon.api.IAPIRegistry;
@@ -175,6 +178,9 @@ public final class AppWebAppListener extends WebAppListener
     {
       LOGGER.info ("OpenTelemetry SDK is disabled (set 'phorm.telemetry.enabled=true' to enable)");
     }
+
+    // Load the external repositories - any error aborts the startup
+    AppValidator.initExternalRepositories ();
   }
 
   @Override
@@ -234,5 +240,15 @@ public final class AppWebAppListener extends WebAppListener
     aAPIRegistry.registerAPI (new APIDescriptor (APIPath.post ("/hybrid_validate"), ApiPostHybridValidate.class));
     aAPIRegistry.registerAPI (new APIDescriptor (APIPath.get ("/get/vesids"), ApiGetAllVESIDs.class));
     aAPIRegistry.registerAPI (new APIDescriptor (APIPath.post ("/determinedoctype"), ApiPostDetermineDocDetails.class));
+
+    // The admin API is only available if an admin token is configured
+    if (StringHelper.isNotEmpty (AppConfig.getAdminToken ()))
+    {
+      aAPIRegistry.registerAPI (new APIDescriptor (APIPath.get ("/admin/repositories"), ApiGetAdminRepositories.class));
+      aAPIRegistry.registerAPI (new APIDescriptor (APIPath.post ("/admin/repositories/reload"),
+                                                   ApiPostAdminReloadRepositories.class));
+    }
+    else
+      LOGGER.info ("The admin API is disabled, because 'phorm.api.admin.token' is not set");
   }
 }

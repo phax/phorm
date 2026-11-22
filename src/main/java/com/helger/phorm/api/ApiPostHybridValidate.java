@@ -54,6 +54,7 @@ import com.helger.kaltblut.core.model.HybridMetadata;
 import com.helger.kaltblut.core.source.HybridLimits;
 import com.helger.kaltblut.core.source.HybridSource;
 import com.helger.kaltblut.core.source.IHybridSource;
+import com.helger.kaltblut.core.validate.HybridFinding;
 import com.helger.kaltblut.core.validate.HybridValidationLayer;
 import com.helger.kaltblut.core.validate.HybridValidationResult;
 import com.helger.kaltblut.core.validate.HybridValidator;
@@ -103,6 +104,9 @@ import com.helger.xml.serialize.write.XMLWriterSettings;
 public class ApiPostHybridValidate extends AbstractAPIInvoker
 {
   public static final String QUERY_PARAM_COUNTRY = "country";
+
+  // The informational finding of kaltblut with the result of the country auto-detection
+  private static final String RULE_ID_COUNTRY_AUTO = "KALTBLUT-COUNTRY-AUTO";
 
   private static final Logger LOGGER = LoggerFactory.getLogger (ApiPostHybridValidate.class);
   private static final AtomicInteger COUNTER = new AtomicInteger (0);
@@ -165,7 +169,8 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
    * @param aPayloadBytes
    *        The PDF bytes. May not be <code>null</code>.
    * @param eCountry
-   *        The optional ZUGFeRD country. May be <code>null</code>.
+   *        The optional ZUGFeRD country. May be <code>null</code> to auto-detect the country from
+   *        the embedded XML.
    * @param aDisplayLocale
    *        The display locale to use. May not be <code>null</code>.
    * @param sLogPrefix
@@ -194,7 +199,7 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
     // 1) Run hybrid PDF carrier validation
     LOGGER.info (sLogPrefix +
                  "Running hybrid PDF carrier validation" +
-                 (eCountry != null ? " (country=" + eCountry + ")" : "") +
+                 (eCountry != null ? " (country=" + eCountry + ")" : " (country auto-detection)") +
                  " with limits: " +
                  aHybridLimits);
 
@@ -202,6 +207,11 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
     aHybridValidator.getSettings ().setLimits (aHybridLimits);
     if (eCountry != null)
       aHybridValidator.getSettings ().setCountry (eCountry);
+    else
+    {
+      // Determine the country from the seller and buyer of the embedded XML
+      aHybridValidator.getSettings ().setReadXmlContext (true);
+    }
 
     final HybridValidationResult aHybridResult = Telemetry.withSpan (CPhormTelemetry.SPAN_KALTBLUT_VALIDATE,
                                                                      ETelemetrySpanKind.INTERNAL,
@@ -250,6 +260,11 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
                                                                                                           ex);
                                                                        }
                                                                      });
+
+    // The detection result is an informational finding that is not part of the response
+    final HybridFinding aCountryFinding = aHybridResult.findByRuleID (RULE_ID_COUNTRY_AUTO);
+    if (aCountryFinding != null)
+      LOGGER.info (sLogPrefix + aCountryFinding.getMessage ());
 
     // Convert to our VRL
     final ValidationResultList aVRL = new ValidationResultList (ValidationSourceBinary.create (null, aPayloadBytes));
