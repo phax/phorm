@@ -17,6 +17,7 @@
 
 @echo off
 
+cd ..
 docker build --pull -t phelger/phorm .
 if errorlevel 1 goto error
 
