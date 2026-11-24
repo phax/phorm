@@ -490,6 +490,10 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.2.17 - 2026-11-24
+* Updated to phive-rules 4.7.3
+* Updated to phive 12.3.1 (using Saxon DOM)
+
 v2.2.16 - 2026-11-23
 * Updated to phive-rules 4.7.2
 
