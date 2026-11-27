@@ -66,7 +66,7 @@
     <log4j.version>2.26.1</log4j.version>
     <opentelemetry.version>1.68.0</opentelemetry.version>
 
-    <phive-rules.version>4.7.1</phive-rules.version>
+    <phive-rules.version>4.7.3</phive-rules.version>
     <phive-rules-legacy.version>4.6.2</phive-rules-legacy.version>
     <ph-telemetry.version>1.1.2</ph-telemetry.version>
   </properties>
@@ -76,7 +76,7 @@
       <dependency>
         <groupId>com.helger.commons</groupId>
         <artifactId>ph-commons-bom</artifactId>
-        <version>12.7.1</version>
+        <version>12.8.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -146,7 +146,7 @@
       <dependency>
         <groupId>com.helger.phive</groupId>
         <artifactId>phive-bom</artifactId>
-        <version>12.3.0</version>
+        <version>12.3.2</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
