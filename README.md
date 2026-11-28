@@ -205,30 +205,33 @@ flowchart LR
 
 Phorm exposes two kinds of HTTP endpoints: a handful of top-level servlets (root page, health check, readiness check and status) and the REST API below `/api`.
 
-| Method | Path | Servlet / Handler | Purpose |
-|---|---|---|---|
-| GET | `/` | `RootServlet` | HTML landing page. In test versions it lists the supported APIs and all registered VESIDs; otherwise it shows only the application name |
-| GET | `/ping` | `PingPongServlet` | Health / keep-alive check, always replies with the plain text `pong` |
-| GET | `/ready` | `ReadyServlet` | Readiness check, replies with HTTP 200 if validation requests can be served and with HTTP 503 if not (yet) |
-| GET | `/status` | `StatusServlet` | Application status as a JSON structure (see below) |
-| POST | `/api/validate/{vesid}` | `ApiPostValidate` | Validate a payload against a specific VESID |
-| GET | `/api/get/vesids` | `ApiGetAllVESIDs` | List all registered VESIDs |
-| GET | `/api/get/version` | `ApiGetVersion` | Get the major and minor version of Phorm |
-| POST | `/api/determinedoctype` | `ApiPostDetermineDocDetails` | Auto-detect the document format of a payload |
-| POST | `/api/dd_and_validate` | `ApiPostDetermineDocTypeAndValidate` | Detect the document type and validate in one call |
-| POST | `/api/hybrid_validate` | `ApiPostHybridValidate` | Validate a ZUGFeRD / Factur-X hybrid PDF invoice |
+The column "Since" names the first Phorm version providing the endpoint. Phorm is versioned since v2.0.0, so all endpoints
+  that existed before are listed with v2.0.0.
+
+| Method | Path | Servlet / Handler | Since | Purpose |
+|---|---|---|---|---|
+| GET | `/` | `RootServlet` | v2.0.0 | HTML landing page. In test versions it lists the supported APIs and all registered VESIDs; otherwise it shows only the application name |
+| GET | `/ping` | `PingPongServlet` | v2.0.0 | Health / keep-alive check, always replies with the plain text `pong` |
+| GET | `/ready` | `ReadyServlet` | v2.2.18 | Readiness check, replies with HTTP 200 if validation requests can be served and with HTTP 503 if not (yet) |
+| GET | `/status` | `StatusServlet` | v2.0.0 | Application status as a JSON structure (see below) |
+| POST | `/api/validate/{vesid}` | `ApiPostValidate` | v2.0.0 | Validate a payload against a specific VESID |
+| GET | `/api/get/vesids` | `ApiGetAllVESIDs` | v2.0.0 | List all registered VESIDs |
+| GET | `/api/get/version` | `ApiGetVersion` | v2.2.18 | Get the major and minor version of Phorm |
+| POST | `/api/determinedoctype` | `ApiPostDetermineDocDetails` | v2.0.0 | Auto-detect the document format of a payload |
+| POST | `/api/dd_and_validate` | `ApiPostDetermineDocTypeAndValidate` | v2.0.0 | Detect the document type and validate in one call |
+| POST | `/api/hybrid_validate` | `ApiPostHybridValidate` | v2.1.0 | Validate a ZUGFeRD / Factur-X hybrid PDF invoice |
 
 ## REST API
 
 The service offers the following REST APIs below `/api`.
 
-* POST **`/api/validate/{vesid}`**
+* POST **`/api/validate/{vesid}`** (since v2.0.0)
   * Validate the provided payload in the body against the validation rules, identified by `{vesid}`
   * Requires the HTTP header `X-Token` to have the configured value (see below for `phorm.api.requiredtoken`)
   * If the HTTP Request Header `Accept` with value `application/xml`  is present, the result is an XML structure. Else the result is a JSON structure
   * Test invocation (replace `XXX` with real token):
     * `curl -X POST -H "Content-Type: application/xml" -H "X-Token: XXX" -d @src/test/resources/testfiles/peppol-bis3/base-example.xml http://localhost:8080/api/validate/eu.peppol.bis3:invoice:latest`
-* GET **`/api/get/vesids`**
+* GET **`/api/get/vesids`** (since v2.0.0)
   * Get a list of all registered VESIDs
   * The optional URL parameter `include-deprecated` can be used to also return registered, but deprecated VES IDs. No parameter value is needed
   * The result is a JSON structure
@@ -250,7 +253,7 @@ The service offers the following REST APIs below `/api`.
   "invocationDurationMillis":0
 }
 ```
-* POST **`/api/determinedoctype`**
+* POST **`/api/determinedoctype`** (since v2.0.0)
   * Try to detect the format and payload specifics of a document instance.
   * The document instance must be the POST payload.
   * Requires the HTTP header `X-Token` to have the configured value (see below for `phorm.api.requiredtoken`)
@@ -276,7 +279,7 @@ The service offers the following REST APIs below `/api`.
   "profileName":"Peppol BIS Billing UBL Invoice V3"
 }
 ```
-* POST **`/api/dd_and_validate`**
+* POST **`/api/dd_and_validate`** (since v2.0.0)
   * Determine the document type and afterwards validate the provided payload in the body against the determined validation rules
     If the payload is wrapped in an SBDH or XHE, the payload document is automatically unwrapped.
     If the payload is wrapped in a Peppol SBDH, its envelope constraints are automatically validated and returned as an
@@ -289,7 +292,7 @@ The service offers the following REST APIs below `/api`.
     Else the result is a JSON structure.
   * Test invocation (replace `XXX` with real token):
     * `curl -X POST -H "Content-Type: application/xml" -H "X-Token: XXX" -d @src/test/resources/testfiles/peppol-bis3/base-example.xml http://localhost:8080/api/dd_and_validate/`
-* POST **`/api/hybrid_validate`**
+* POST **`/api/hybrid_validate`** (since v2.1.0)
   * Validate a ZUGFeRD / Factur-X hybrid PDF invoice. The PDF must be the POST body.
     A body that does not start with the PDF header `%PDF` is rejected with HTTP 400. The carrier-side rules
     (BR-HYBRID-* business rules and PDF/A-3 conformance via veraPDF) are evaluated by [kaltblut](https://github.com/phax/kaltblut),
@@ -311,13 +314,13 @@ The service offers the following REST APIs below `/api`.
 
 ## Servlets
 
-* GET **`/`** (`RootServlet`)
+* GET **`/`** (`RootServlet`) (since v2.0.0)
   * Returns an HTML page.
   * When the application runs as a "test version" (see `webapp.testversion`), the page additionally lists all supported APIs and all registered VESIDs.
   * The optional URL parameter `include-deprecated` also lists deprecated VESIDs. No parameter value is needed.
   * Test invocation:
     * `curl http://localhost:8080/`
-* GET **`/ping`** (`PingPongServlet`)
+* GET **`/ping`** (`PingPongServlet`) (since v2.0.0)
   * Health check / keep-alive endpoint.
   * Always returns the plain text (`text/plain`) body `pong`. Caching is disabled.
   * Test invocation:
@@ -331,7 +334,7 @@ The service offers the following REST APIs below `/api`.
   * No reason is disclosed - use `/status` for diagnostics. `/ping` stays the liveness check and does not depend on the VES.
   * Test invocation:
     * `curl -i http://localhost:8080/ready`
-* GET **`/status`** (`StatusServlet`)
+* GET **`/status`** (`StatusServlet`) (since v2.0.0)
   * Returns application status as a JSON structure. Caching is disabled.
   * Only delivers data if `phorm.statusapi.enabled` is `true`; otherwise it returns `{"status.enabled":false}`.
   * Test invocation:
