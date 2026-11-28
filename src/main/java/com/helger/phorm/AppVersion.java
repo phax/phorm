@@ -22,6 +22,7 @@ import com.helger.annotation.concurrent.Immutable;
 import com.helger.base.exception.InitializationException;
 import com.helger.base.rt.NonBlockingProperties;
 import com.helger.base.rt.PropertiesHelper;
+import com.helger.base.version.Version;
 import com.helger.io.resource.ClassPathResource;
 
 /**
@@ -36,6 +37,7 @@ public final class AppVersion
 
   private static final String VERSION_NUMBER;
   private static final String TIMESTAMP;
+  private static final Version VERSION;
 
   static
   {
@@ -52,6 +54,8 @@ public final class AppVersion
     TIMESTAMP = aVersionProps.get ("timestamp");
     if (TIMESTAMP == null)
       throw new InitializationException ("Error determining Validation Service build timestamp!");
+
+    VERSION = Version.parse (VERSION_NUMBER);
   }
 
   private AppVersion ()
@@ -65,6 +69,18 @@ public final class AppVersion
   public static String getVersionNumber ()
   {
     return VERSION_NUMBER;
+  }
+
+  /**
+   * @return The version number of the Phorm as a parsed {@link Version}, e.g. to access only the
+   *         major and minor version. A qualifier like <code>SNAPSHOT</code> is part of it. Never
+   *         <code>null</code>.
+   * @since 2.2.18
+   */
+  @NonNull
+  public static Version getVersion ()
+  {
+    return VERSION;
   }
 
   /**

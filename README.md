@@ -212,6 +212,7 @@ Phorm exposes two kinds of HTTP endpoints: a handful of top-level servlets (root
 | GET | `/status` | `StatusServlet` | Application status as a JSON structure (see below) |
 | POST | `/api/validate/{vesid}` | `ApiPostValidate` | Validate a payload against a specific VESID |
 | GET | `/api/get/vesids` | `ApiGetAllVESIDs` | List all registered VESIDs |
+| GET | `/api/get/version` | `ApiGetVersion` | Get the major and minor version of Phorm |
 | POST | `/api/determinedoctype` | `ApiPostDetermineDocDetails` | Auto-detect the document format of a payload |
 | POST | `/api/dd_and_validate` | `ApiPostDetermineDocTypeAndValidate` | Detect the document type and validate in one call |
 | POST | `/api/hybrid_validate` | `ApiPostHybridValidate` | Validate a ZUGFeRD / Factur-X hybrid PDF invoice |
@@ -231,6 +232,23 @@ The service offers the following REST APIs below `/api`.
   * The optional URL parameter `include-deprecated` can be used to also return registered, but deprecated VES IDs. No parameter value is needed
   * The result is a JSON structure
     * `curl -X GET http://localhost:8080/api/get/vesids`
+* GET **`/api/get/version`** (since v2.2.18)
+  * Get the major and minor version of Phorm, e.g. to check whether a feature is available
+  * The micro version and the build timestamp are deliberately not disclosed
+  * Requires no `X-Token`
+  * The result is a JSON structure with the numeric fields `major` and `minor`
+    * `curl -X GET http://localhost:8080/api/get/version`
+  * Use `Accept: text/plain` to get just `major.minor`, e.g. `2.2`
+    * `curl -X GET -H "Accept: text/plain" http://localhost:8080/api/get/version`
+  * Example output:
+```json
+{
+  "major":2,
+  "minor":2,
+  "invocationDateTime":"2026-11-28T09:15:00.123Z",
+  "invocationDurationMillis":0
+}
+```
 * POST **`/api/determinedoctype`**
   * Try to detect the format and payload specifics of a document instance.
   * The document instance must be the POST payload.
@@ -489,6 +507,9 @@ As an alternative to using `private-application.properties` you may also conside
    see https://github.com/phax/ph-commons/wiki/ph-config for details.
 
 # News and noteworthy
+
+v2.2.18 - work in progress
+* Added the API `GET /api/get/version` to get the major and minor version as JSON or, with `Accept: text/plain`, as plain text (#25)
 
 v2.2.17 - 2026-11-24
 * Updated to phive-rules 4.7.3

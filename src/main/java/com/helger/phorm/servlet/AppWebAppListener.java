@@ -35,6 +35,7 @@ import com.helger.phorm.AppMetaManager;
 import com.helger.phorm.AppSecurity;
 import com.helger.phorm.CApp;
 import com.helger.phorm.api.ApiGetAllVESIDs;
+import com.helger.phorm.api.ApiGetVersion;
 import com.helger.phorm.api.ApiPostDetermineDocDetails;
 import com.helger.phorm.api.ApiPostDetermineDocTypeAndValidate;
 import com.helger.phorm.api.ApiPostHybridValidate;
@@ -233,6 +234,7 @@ public final class AppWebAppListener extends WebAppListener
                                                  ApiPostDetermineDocTypeAndValidate.class));
     aAPIRegistry.registerAPI (new APIDescriptor (APIPath.post ("/hybrid_validate"), ApiPostHybridValidate.class));
     aAPIRegistry.registerAPI (new APIDescriptor (APIPath.get ("/get/vesids"), ApiGetAllVESIDs.class));
+    aAPIRegistry.registerAPI (new APIDescriptor (APIPath.get ("/get/version"), ApiGetVersion.class));
     aAPIRegistry.registerAPI (new APIDescriptor (APIPath.post ("/determinedoctype"), ApiPostDetermineDocDetails.class));
   }
 }

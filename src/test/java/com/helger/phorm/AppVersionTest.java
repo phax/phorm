@@ -17,6 +17,7 @@
 package com.helger.phorm;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -27,5 +28,8 @@ public final class AppVersionTest
   {
     assertNotNull (AppVersion.getVersionNumber ());
     assertNotNull (AppVersion.getBuildTimestamp ());
+    assertNotNull (AppVersion.getVersion ());
+    // The qualifier (e.g. "SNAPSHOT") must not end up in the major and minor version
+    assertTrue (AppVersion.getVersionNumber ().startsWith (AppVersion.getVersion ().getAsStringMajorMinor () + "."));
   }
 }

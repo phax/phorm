@@ -31,7 +31,7 @@ docker build --pull -t phelger/phorm .
 docker run -d --name phorm -p 8080:8080 phelger/phorm
 ```
 
-**Local dev server**: Run `com.helger.phorm.jetty.RunInJettyPhorm` as a main class (port 8080). Stop with `JettyStopPhorm`.
+**Local dev server**: Run `com.helger.phorm.jetty.RunInJettyPhorm` as a main class (port 8090, stop port 9090). Stop with `JettyStopPhorm`.
 
 ## Architecture
 
@@ -39,6 +39,7 @@ docker run -d --name phorm -p 8080:8080 phelger/phorm
 - `AbstractAPIInvoker` / `CommonAPIInvoker` — base classes handling X-Token auth and request parsing
 - `ApiPostValidate` — POST `/api/validate/{vesid}` — validate XML against a specific VESID
 - `ApiGetAllVESIDs` — GET `/api/get/vesids` — list all registered validation executor set IDs
+- `ApiGetVersion` — GET `/api/get/version` — major and minor version only (no micro version, no token); JSON by default, `major.minor` with `Accept: text/plain`
 - `ApiPostDetermineDocDetails` — POST `/api/determinedoctype` — auto-detect document format
 - `ApiPostDetermineDocTypeAndValidate` — POST `/api/dd_and_validate` — detect + validate in one call
 - `ApiPostHybridValidate` — POST `/api/hybrid_validate` — validate a ZUGFeRD / Factur-X hybrid PDF: PDF carrier via kaltblut, then the embedded XML (optional `?country=DE|FR|OTHER`); the BT-24 of the embedded XML is checked against the XMP profile (`EHybridSpecificationID`), and any problem with the embedded XML is reported in a `hybrid-embedded-xml` layer
@@ -69,4 +70,4 @@ Key settings: `phorm.api.requiredtoken` (X-Token auth value), `phorm.api.respons
 - Constants classes prefixed with `C` (e.g., `CApp`)
 - Nullness annotations from JSpecify (`@NonNull`, `@Nullable`)
 - `@Immutable` on stateless utility classes
-- API responses support JSON (default), XML (`Accept: application/xml`), and HTML (`Accept: text/html`) based on Accept header
+- API responses support JSON (default), XML (`Accept: application/xml`), and HTML (`Accept: text/html`) based on Accept header; `/api/get/version` offers JSON (default) and plain text (`Accept: text/plain`) instead
