@@ -45,7 +45,8 @@ docker run -d --name phorm -p 8080:8080 phelger/phorm
 - `ApiPostHybridValidate` — POST `/api/hybrid_validate` — validate a ZUGFeRD / Factur-X hybrid PDF: PDF carrier via kaltblut, then the embedded XML (optional `?country=DE|FR|OTHER`); the BT-24 of the embedded XML is checked against the XMP profile (`EHybridSpecificationID`), and any problem with the embedded XML is reported in a `hybrid-embedded-xml` layer
 
 ### Core Components
-- `AppValidator` (`validation/`) — static registry of all `ValidationExecutorSet` instances; loads all phive-rules and phive-rules-legacy in a static initialiser on first use of the class, not in `AppWebAppListener`
+- `AppValidator` (`validation/`) — static registry of all `ValidationExecutorSet` instances; loads all phive-rules and phive-rules-legacy in a static initialiser on first use of the class; `AppWebAppListener` triggers that in a background thread (`AppValidatorReadiness.startLoadingInBackground`), so the startup is not delayed
+- `AppValidatorReadiness` (`validation/`) — non-blocking readiness flag, set at the end of the `AppValidator` static initialiser; it is a separate class, because touching `AppValidator` blocks until all VES are loaded
 - `PhormDDD` (`ddd/`) — document details determination using the `ddd` library
 - `AppConfig` — typed access to `application.properties` settings
 - `AppWebAppListener` (`servlet/`) — application lifecycle initialization (extends Photon's `WebAppListener`)
@@ -53,6 +54,7 @@ docker run -d --name phorm -p 8080:8080 phelger/phorm
 ### Servlet Mappings (web.xml)
 - `/api/*` → PhotonAPIServlet (REST endpoints)
 - `/ping/*` → PingPongServlet (health check)
+- `/ready/*` → ReadyServlet (readiness: HTTP 200 `{"ready":true}` or HTTP 503 `{"ready":false}`, no token; used by the Docker `HEALTHCHECK`)
 - `/status/*` → StatusServlet
 - `/` → RootServlet
 

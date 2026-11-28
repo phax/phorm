@@ -203,12 +203,13 @@ flowchart LR
 
 # HTTP Endpoints
 
-Phorm exposes two kinds of HTTP endpoints: a handful of top-level servlets (root page, health check and status) and the REST API below `/api`.
+Phorm exposes two kinds of HTTP endpoints: a handful of top-level servlets (root page, health check, readiness check and status) and the REST API below `/api`.
 
 | Method | Path | Servlet / Handler | Purpose |
 |---|---|---|---|
 | GET | `/` | `RootServlet` | HTML landing page. In test versions it lists the supported APIs and all registered VESIDs; otherwise it shows only the application name |
 | GET | `/ping` | `PingPongServlet` | Health / keep-alive check, always replies with the plain text `pong` |
+| GET | `/ready` | `ReadyServlet` | Readiness check, replies with HTTP 200 if validation requests can be served and with HTTP 503 if not (yet) |
 | GET | `/status` | `StatusServlet` | Application status as a JSON structure (see below) |
 | POST | `/api/validate/{vesid}` | `ApiPostValidate` | Validate a payload against a specific VESID |
 | GET | `/api/get/vesids` | `ApiGetAllVESIDs` | List all registered VESIDs |
@@ -321,6 +322,15 @@ The service offers the following REST APIs below `/api`.
   * Always returns the plain text (`text/plain`) body `pong`. Caching is disabled.
   * Test invocation:
     * `curl http://localhost:8080/ping`
+* GET **`/ready`** (`ReadyServlet`) (since v2.2.18)
+  * Readiness check, e.g. for a Kubernetes `readinessProbe` or the Docker health check.
+  * Replies with HTTP 200 and `{"ready":true}` if all VES are loaded and validation requests can be served.
+  * Replies with HTTP 503 and `{"ready":false}` if not (yet). After the startup, all VES are loaded in the background, so
+    `/ready` replies with HTTP 503 until that is finished. A validation request arriving earlier waits for it.
+  * The result is a JSON structure (`application/json`, UTF-8). Caching is disabled and no `X-Token` is required.
+  * No reason is disclosed - use `/status` for diagnostics. `/ping` stays the liveness check and does not depend on the VES.
+  * Test invocation:
+    * `curl -i http://localhost:8080/ready`
 * GET **`/status`** (`StatusServlet`)
   * Returns application status as a JSON structure. Caching is disabled.
   * Only delivers data if `phorm.statusapi.enabled` is `true`; otherwise it returns `{"status.enabled":false}`.
@@ -472,6 +482,10 @@ Running:
 docker run -d --name phorm -p 8080:8080 phelger/phorm
 ```
 
+The image contains a Docker `HEALTHCHECK` based on `/ready`, so the container is reported as `healthy` as soon as
+  validation requests can be served (`docker inspect -f '{{.State.Health.Status}}' phorm`).
+Kubernetes ignores the Docker health check - use `/ping` for the `livenessProbe` and `/ready` for the `readinessProbe` there.
+
 Example curl command (use the correct "X-Token" and the right address):
 ```
 curl -d "@base-example.xml" -H "Content-Type: application/xml" -H "X-Token: XXX" -X POST http://localhost:8080/api/validate/eu.peppol.bis3:invoice:latest
@@ -510,6 +524,9 @@ As an alternative to using `private-application.properties` you may also conside
 
 v2.2.18 - work in progress
 * Added the API `GET /api/get/version` to get the major and minor version as JSON or, with `Accept: text/plain`, as plain text (#25)
+* Added the readiness API `GET /ready`, replying with HTTP 200 if validation requests can be served and with HTTP 503 if not (#26)
+* All VES are now loaded in the background directly after the startup, instead of on the first use
+* Added a `HEALTHCHECK` based on `/ready` to the Docker image
 
 v2.2.17 - 2026-11-24
 * Updated to phive-rules 4.7.3

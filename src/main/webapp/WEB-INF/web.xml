@@ -58,6 +58,15 @@
   </servlet-mapping>
 
   <servlet>
+    <servlet-name>ReadyServlet</servlet-name>
+    <servlet-class>com.helger.phorm.servlet.ReadyServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ReadyServlet</servlet-name>
+    <url-pattern>/ready/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>StatusServlet</servlet-name>
     <servlet-class>com.helger.phorm.servlet.StatusServlet</servlet-class>
   </servlet>

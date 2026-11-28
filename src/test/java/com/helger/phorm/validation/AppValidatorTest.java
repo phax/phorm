@@ -17,6 +17,7 @@
 package com.helger.phorm.validation;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -32,5 +33,7 @@ public class AppValidatorTest
   {
     // Make sure the registrations all work
     assertNotNull (AppValidator.getAllVESSorted ());
+    // Loading all VES makes phorm ready
+    assertTrue (AppValidatorReadiness.isReady ());
   }
 }

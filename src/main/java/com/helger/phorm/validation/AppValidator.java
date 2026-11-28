@@ -51,6 +51,7 @@ public class AppValidator
   {
     PhiveRulesValidation.initPhiveRules (VESREG);
     PhiveRulesLegacyValidation.initPhiveRulesLegacy (VESREG);
+    AppValidatorReadiness.markReady ();
   }
 
   private AppValidator ()

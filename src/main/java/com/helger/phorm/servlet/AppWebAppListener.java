@@ -41,6 +41,7 @@ import com.helger.phorm.api.ApiPostDetermineDocTypeAndValidate;
 import com.helger.phorm.api.ApiPostHybridValidate;
 import com.helger.phorm.api.ApiPostValidate;
 import com.helger.phorm.telemetry.PhormMetrics;
+import com.helger.phorm.validation.AppValidatorReadiness;
 import com.helger.photon.api.APIDescriptor;
 import com.helger.photon.api.APIPath;
 import com.helger.photon.api.IAPIRegistry;
@@ -224,6 +225,9 @@ public final class AppWebAppListener extends WebAppListener
   {
     AppErrorHandler.doSetup ();
     AppMetaManager.getInstance ();
+
+    // Load all VES without delaying the startup - "/ready" reports when it is done
+    AppValidatorReadiness.startLoadingInBackground ();
   }
 
   @Override

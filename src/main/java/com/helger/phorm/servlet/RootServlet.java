@@ -55,6 +55,8 @@ public class RootServlet extends AbstractXServlet
           final HCUL aUL = new HCUL ();
           aUL.addItem (div ("HTTP GET to").addChild (a (new SimpleURL ("ping")).addChild (code ("/ping")))
                                           .addChild (" for keep-alive or health checks"));
+          aUL.addItem (div ("HTTP GET to").addChild (a (new SimpleURL ("ready")).addChild (code ("/ready")))
+                                          .addChild (" for readiness checks"));
           aUL.addItem (div ("HTTP GET to").addChild (a (new SimpleURL ("status")).addChild (code ("/status")))
                                           .addChild (" for status information"));
           aUL.addItem (div ("HTTP POST to ").addChild (code ("/api/validate/{vesid}"))
