@@ -62,6 +62,13 @@ public final class AppValidatorExternalRepositoryTest
   private static final String GROUP_ID = "com.helger.phorm.test";
   private static final DVRCoordinate VESID_XSD = DVRCoordinate.parseOrNull (GROUP_ID + ":test_xsd:1.0");
   private static final DVRCoordinate VESID_SCH = DVRCoordinate.parseOrNull (GROUP_ID + ":test_sch:1.0");
+  private static final DVRCoordinate VESID_REQ_BUILTIN = DVRCoordinate.parseOrNull (GROUP_ID + ":req_builtin:1.0");
+  private static final DVRCoordinate VESID_REQ_BUILTIN_LATEST = DVRCoordinate.parseOrNull (GROUP_ID +
+                                                                                           ":req_builtin_latest:1.0");
+  private static final DVRCoordinate VESID_REQ_MISSING = DVRCoordinate.parseOrNull (GROUP_ID + ":req_missing:1.0");
+  private static final DVRCoordinate VESID_REQ_OTHER_REPO = DVRCoordinate.parseOrNull (GROUP_ID + ":req_other_repo:1.0");
+
+  private static IValidationExecutorSet <IValidationSourceXML> s_aBuiltinVES;
 
   @NonNull
   private static String _getVESXSD (@NonNull final DVRCoordinate aVESID)
@@ -94,6 +101,38 @@ public final class AppValidatorExternalRepositoryTest
            "<requires><groupId>" +
            GROUP_ID +
            "</groupId><artifactId>test_xsd</artifactId><version>1.0</version></requires>" +
+           "<schematron><resource><groupId>" +
+           GROUP_ID +
+           "</groupId><artifactId>mini-sch</artifactId><version>1.0</version><type>sch</type></resource>" +
+           "<engine>iso-schematron</engine></schematron>" +
+           "</ves>";
+  }
+
+  /**
+   * Create a Schematron VES, that requires the provided VESID.
+   */
+  @NonNull
+  private static String _getVESRequiring (@NonNull final DVRCoordinate aVESID,
+                                          @NonNull final String sRequiredGroupID,
+                                          @NonNull final String sRequiredArtifactID,
+                                          @NonNull final String sRequiredVersion)
+  {
+    return "<ves xmlns=\"urn:com:helger:phive:ves:v1.0\">" +
+           "<groupId>" +
+           aVESID.getGroupID () +
+           "</groupId><artifactId>" +
+           aVESID.getArtifactID () +
+           "</artifactId><version>" +
+           aVESID.getVersionString () +
+           "</version>" +
+           "<name>phorm requirement test</name>" +
+           "<requires><groupId>" +
+           sRequiredGroupID +
+           "</groupId><artifactId>" +
+           sRequiredArtifactID +
+           "</artifactId><version>" +
+           sRequiredVersion +
+           "</version></requires>" +
            "<schematron><resource><groupId>" +
            GROUP_ID +
            "</groupId><artifactId>mini-sch</artifactId><version>1.0</version><type>sch</type></resource>" +
@@ -186,11 +225,28 @@ public final class AppValidatorExternalRepositoryTest
     FileOperationManager.INSTANCE.deleteDirRecursiveIfExisting (BASE_DIR);
 
     // Built-in VESID used in a repository
-    final DVRCoordinate aBuiltinVESID = AppValidator.getAllVES ().getFirstOrNull ().getID ();
+    s_aBuiltinVES = AppValidator.getAllVES ().getFirstOrNull ();
+    final DVRCoordinate aBuiltinVESID = s_aBuiltinVES.getID ();
 
     _createRepo ("repo-a", _getVESXSD (VESID_XSD), _getVESSchematron ());
     _createRepo ("repo-b", _getVESXSD (VESID_XSD));
     _createRepo ("repo-builtin", _getVESXSD (aBuiltinVESID));
+    _createRepo ("repo-req-builtin",
+                 _getVESRequiring (VESID_REQ_BUILTIN,
+                                   aBuiltinVESID.getGroupID (),
+                                   aBuiltinVESID.getArtifactID (),
+                                   aBuiltinVESID.getVersionString ()),
+                 _getVESRequiring (VESID_REQ_BUILTIN_LATEST,
+                                   aBuiltinVESID.getGroupID (),
+                                   aBuiltinVESID.getArtifactID (),
+                                   "latest"));
+    _createRepo ("repo-req-missing", _getVESRequiring (VESID_REQ_MISSING, GROUP_ID, "does-not-exist", "1.0"));
+    // Requires a VES that is only contained in repo-a
+    _createRepo ("repo-req-other",
+                 _getVESRequiring (VESID_REQ_OTHER_REPO,
+                                   VESID_XSD.getGroupID (),
+                                   VESID_XSD.getArtifactID (),
+                                   VESID_XSD.getVersionString ()));
   }
 
   @After
@@ -237,6 +293,68 @@ public final class AppValidatorExternalRepositoryTest
     assertTrue (aVRL.getOverallValidity ().isInvalid ());
     assertEquals (1, aVRL.getAllErrors ().size ());
     assertEquals ("MINI-1", aVRL.getAllErrors ().getFirstOrNull ().getErrorID ());
+  }
+
+  @Test
+  public void testRequiresBuiltin ()
+  {
+    final int nBuiltinCount = AppValidator.getAllVES ().size ();
+    final ErrorList aErrorList = new ErrorList ();
+    assertTrue (aErrorList.toString (),
+                AppValidator.loadExternalRepositories (_createConfig ("req-builtin.xml",
+                                                                      _repo ("repo-req-builtin", "diver-xml")),
+                                                       aErrorList)
+                            .isSuccess ());
+    assertFalse (aErrorList.toString (), aErrorList.containsAtLeastOneError ());
+    assertEquals (nBuiltinCount + 2, AppValidator.getAllVES ().size ());
+    assertEquals ("repo-req-builtin", AppValidator.getExternalRepositoryIDOfVES (VESID_REQ_BUILTIN));
+
+    // All executors of the built-in VES plus the own Schematron
+    final int nBuiltinExecutors = s_aBuiltinVES.getAllExecutors ().size ();
+    assertEquals (nBuiltinExecutors + 1, AppValidator.getVES (VESID_REQ_BUILTIN).getAllExecutors ().size ());
+    // Pseudo version resolved against the built-in VES
+    assertEquals (AppValidator.getVES (DVRCoordinate.parseOrNull (s_aBuiltinVES.getID ().getGroupID () +
+                                                                  ":" +
+                                                                  s_aBuiltinVES.getID ().getArtifactID () +
+                                                                  ":latest")).getAllExecutors ().size () + 1,
+                  AppValidator.getVES (VESID_REQ_BUILTIN_LATEST).getAllExecutors ().size ());
+    // The built-in VES itself is not touched
+    assertNull (AppValidator.getExternalRepositoryIDOfVES (s_aBuiltinVES.getID ()));
+    assertEquals (nBuiltinExecutors, AppValidator.getVES (s_aBuiltinVES.getID ()).getAllExecutors ().size ());
+  }
+
+  @Test
+  public void testRequiresMissing ()
+  {
+    final int nBuiltinCount = AppValidator.getAllVES ().size ();
+    final ErrorList aErrorList = new ErrorList ();
+    assertTrue (AppValidator.loadExternalRepositories (_createConfig ("req-missing.xml",
+                                                                      _repo ("repo-req-missing", "diver-xml")),
+                                                       aErrorList)
+                            .isFailure ());
+    assertTrue (aErrorList.toString (),
+                aErrorList.containsAny (x -> x.getErrorText (CApp.DEFAULT_LOCALE)
+                                              .contains ("is neither contained in the repository nor could it be resolved")));
+    assertEquals (nBuiltinCount, AppValidator.getAllVES ().size ());
+    assertFalse (AppValidator.containsVES (VESID_REQ_MISSING));
+  }
+
+  @Test
+  public void testRequiresOtherRepository ()
+  {
+    // A VES of another external repository is never used, even if that repository is configured
+    final ErrorList aErrorList = new ErrorList ();
+    assertTrue (AppValidator.loadExternalRepositories (_createConfig ("req-other.xml",
+                                                                      _repo ("repo-a", "diver-xml") +
+                                                                                       _repo ("repo-req-other",
+                                                                                              "diver-xml")),
+                                                       aErrorList)
+                            .isFailure ());
+    assertTrue (aErrorList.toString (),
+                aErrorList.containsAny (x -> x.getErrorText (CApp.DEFAULT_LOCALE)
+                                              .contains ("is neither contained in the repository nor could it be resolved")));
+    assertFalse (AppValidator.containsVES (VESID_XSD));
+    assertFalse (AppValidator.containsVES (VESID_REQ_OTHER_REPO));
   }
 
   @Test

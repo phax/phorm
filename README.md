@@ -305,7 +305,7 @@ The admin APIs are only available if `phorm.api.admin.token` is configured. They
   * The result is a JSON structure
     * `curl -X GET -H "X-Token: XXX" http://localhost:8080/api/admin/repositories`
 * POST **`/api/admin/repositories/reload`**
-  * Reload all external repositories from the file configured in `phorm.repositories.file`. Nothing is changed if any error occurs - the previously loaded VES stay active
+  * Reload all external repositories from the file configured in `phorm.repositories.file`, with the same rules as on startup (see *External repositories*), including the resolution of required VES against the built-in VES. Nothing is changed if any error occurs - the previously loaded VES stay active
   * On success the JSON result contains `"success":true`, the VESIDs that were `added` and `removed`, and the same information as `/api/admin/repositories`
   * On failure HTTP 500 is returned, with `"success":false` and all problems in `errors`
     * `curl -X POST -H "X-Token: XXX" http://localhost:8080/api/admin/repositories/reload`
@@ -428,7 +428,8 @@ The repositories are described in an XML file, referenced by `phorm.repositories
 
 * Only the repository type `localfs` (local file system) is supported. A relative `basedir` is resolved against the directory of the XML file
 * Each repository must have a top-level ToC (`toptoc="diver-xml"`, i.e. the file `toptoc-diver.xml`), because all VES of a repository are found via the top-level ToC and the ToC per artifact
-* A VES may only require other VES from the same repository
+* A VES may require (`requires` / `partialRequires`) other VES from the same repository and built-in VES. The repository of the requiring VES is searched first; pseudo versions such as `latest` are resolved within the repository and then within the built-in VES. VES of other external repositories can't be required. A required VES that is found neither in the repository nor in the built-in VES is an error
+* Deployment note: an external repository with VES requiring a built-in VES needs Phorm 2.3.0 or later - older versions refuse to start or reload
 * Only VES using XML Schema and/or Schematron are supported
 * All VES are loaded on startup. Any problem aborts the startup: an invalid XML file, a repository that can't be created, a VES that can't be loaded (including its required VES), and a VESID that is contained in more than one repository or that is already a built-in VESID
 * The loaded VES are used by `/api/validate/{vesid}` exactly like the built-in ones. They are not considered by the document type detection of `/api/determinedoctype`, `/api/dd_and_validate` and `/api/hybrid_validate`
@@ -548,6 +549,8 @@ v2.3.0 - work in progress
 * Added support for external local validation repositories, described in an XML file referenced by the new configuration property `phorm.repositories.file`. See the new section *External repositories*
 * Added the admin APIs `GET /api/admin/repositories` and `POST /api/admin/repositories/reload`, enabled by the new configuration property `phorm.api.admin.token`
 * `/api/get/vesids` returns the new field `repository` for VES loaded from an external repository
+* A VES of an external repository may require a built-in VES. See [issue #24](https://github.com/phax/phorm/issues/24)
+* Updated to phive 12.4.0
 * Updated to ph-diver 4.3.0
 * Updated to kaltblut 1.0.0
 * `/api/hybrid_validate` auto-detects the country from the embedded XML, if the query parameter `country` is not provided. Previously `OTHER` was used

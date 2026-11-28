@@ -48,6 +48,7 @@ import com.helger.phive.api.result.ValidationResultList;
 import com.helger.phive.api.validity.IValidityDeterminator;
 import com.helger.phive.rules.all.PhiveRulesValidation;
 import com.helger.phive.rules.all.legacy.PhiveRulesLegacyValidation;
+import com.helger.phive.ves.engine.load.LoadedVES;
 import com.helger.phive.xml.source.IValidationSourceXML;
 import com.helger.phorm.AppConfig;
 import com.helger.phorm.CApp;
@@ -69,6 +70,9 @@ public class AppValidator
   private static final Logger LOGGER = LoggerFactory.getLogger (AppValidator.class);
 
   private static final ValidationExecutorSetRegistry <IValidationSourceXML> VESREG = new ValidationExecutorSetRegistry <> ();
+  // Only the built-in VES, to resolve the requirements of external VES. Never changes after the
+  // static initialisation and has its own lock.
+  private static final ValidationExecutorSetRegistry <IValidationSourceXML> BUILTIN_VESREG = new ValidationExecutorSetRegistry <> ();
   private static final IValidityDeterminator <IValidationSourceXML> VD = IValidityDeterminator.createDefault ();
   // Guards the registry against lookups while the external VES are swapped
   private static final SimpleReadWriteLock RW_LOCK = new SimpleReadWriteLock ();
@@ -83,6 +87,9 @@ public class AppValidator
   {
     PhiveRulesValidation.initPhiveRules (VESREG);
     PhiveRulesLegacyValidation.initPhiveRulesLegacy (VESREG);
+    // Same instances, so no additional memory for the rules is needed
+    for (final IValidationExecutorSet <IValidationSourceXML> aVES : VESREG.getAll ())
+      BUILTIN_VESREG.registerValidationExecutorSet (aVES);
   }
 
   private AppValidator ()
@@ -178,6 +185,31 @@ public class AppValidator
     return RW_LOCK.readLockedGet (() -> s_aExternalLoadDT);
   }
 
+  /**
+   * Resolve a VES required by an external VES, that is not contained in the repository of the
+   * external VES, against the built-in VES. External VES of other repositories are never used.
+   *
+   * @param aRequiredVES
+   *        The requirement to resolve. May not be <code>null</code>.
+   * @param aErrorList
+   *        The error list. Not used, as the caller reports an unresolvable requirement.
+   * @return <code>null</code> if no built-in VES matches. Pseudo versions are resolved against the
+   *         built-in VES only.
+   */
+  @Nullable
+  private static IValidationExecutorSet <IValidationSourceXML> _resolveBuiltinRequirement (final LoadedVES.@NonNull RequiredVES aRequiredVES,
+                                                                                            @NonNull final ErrorList aErrorList)
+  {
+    final IValidationExecutorSet <IValidationSourceXML> ret = BUILTIN_VESREG.getOfID (aRequiredVES.getRequiredVESID ());
+    if (ret != null)
+      LOGGER.info ("Resolved the required VESID '" +
+                   aRequiredVES.getRequiredVESID ().getAsSingleID () +
+                   "' to the built-in VES '" +
+                   ret.getID ().getAsSingleID () +
+                   "'");
+    return ret;
+  }
+
   @NonNull
   private static ESuccess _loadExternalRepositories (@Nullable final File aConfigFile,
                                                      @NonNull final ErrorList aErrorList)
@@ -193,7 +225,9 @@ public class AppValidator
     else
     {
       LOGGER.info ("Loading external repositories from '" + aConfigFile.getAbsolutePath () + "'");
-      final ExternalVESLoader.LoadResult aResult = ExternalVESLoader.load (aConfigFile, aErrorList);
+      final ExternalVESLoader.LoadResult aResult = ExternalVESLoader.load (aConfigFile,
+                                                                                  AppValidator::_resolveBuiltinRequirement,
+                                                                                  aErrorList);
       if (aResult == null)
         return ESuccess.FAILURE;
       aNewRepoIDs = aResult.getAllRepositoryIDs ();
@@ -240,7 +274,9 @@ public class AppValidator
   /**
    * Load all VES from the repositories of the provided configuration file and replace all
    * previously loaded external VES with them. The replacement is atomic: if any error occurs,
-   * nothing is changed. A VESID that is already registered as a built-in VES is an error.
+   * nothing is changed. A VESID that is already registered as a built-in VES is an error. A VES
+   * required by an external VES is searched in the same repository first and then in the built-in
+   * VES.
    *
    * @param aConfigFile
    *        The repository configuration file. May be <code>null</code> to remove all external VES.

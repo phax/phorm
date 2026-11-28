@@ -41,6 +41,7 @@ import com.helger.diver.repo.config.RepoStorageConfigReader;
 import com.helger.diver.repo.config.RepoStorageFactoryRegistry;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
 import com.helger.phive.api.source.IValidationSource;
+import com.helger.phive.ves.engine.load.IVESRequirementResolver;
 import com.helger.phive.ves.engine.load.LoadedVES;
 import com.helger.phive.ves.engine.load.VESLoader;
 import com.helger.phive.ves.model.v1.EVESSyntax;
@@ -168,15 +169,23 @@ public final class ExternalVESLoader
    * error: an unreadable configuration, a repository that can't be created, a repository without a
    * <code>diver-xml</code> top-level ToC, a VES that can't be loaded (including its requirements),
    * a VES with an unsupported syntax and the same VESID in more than one repository.
+   * <p>
+   * A VES may require other VES of the same repository. A required VES that is not contained in that
+   * repository is passed to the optional requirement resolver, e.g. to use a built-in VES.
    *
    * @param aConfigFile
    *        The repository configuration file. May not be <code>null</code>.
+   * @param aRequirementResolver
+   *        The resolver for required VES that are not contained in the repository of the requiring
+   *        VES. May be <code>null</code> to only resolve requirements in the same repository.
    * @param aErrorList
    *        The error list to be filled. May not be <code>null</code>.
    * @return <code>null</code> if at least one error occurred.
    */
   @Nullable
-  public static LoadResult load (@NonNull final File aConfigFile, @NonNull final ErrorList aErrorList)
+  public static LoadResult load (@NonNull final File aConfigFile,
+                                 @Nullable final IVESRequirementResolver aRequirementResolver,
+                                 @NonNull final ErrorList aErrorList)
   {
     ValueEnforcer.notNull (aConfigFile, "ConfigFile");
     ValueEnforcer.notNull (aErrorList, "ErrorList");
@@ -220,7 +229,8 @@ public final class ExternalVESLoader
       }
 
       // Eager, so that problems with required VES are detected now and not on first validation
-      final VESLoader aLoader = new VESLoader (aRepo.getRepoStorage ()).setUseEagerRequirementLoading (true);
+      final VESLoader aLoader = new VESLoader (aRepo.getRepoStorage ()).setUseEagerRequirementLoading (true)
+                                                                       .setRequirementResolver (aRequirementResolver);
       final ICommonsList <DVRCoordinate> aVESIDs = RepositoryVESEnumerator.getAllVESIDs (aRepo.getRepoStorage (),
                                                                                          aRepo.getTopTocService ());
       LOGGER.info ("Found " + aVESIDs.size () + " VES in repository '" + sRepoID + "'");
